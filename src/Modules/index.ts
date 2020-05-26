@@ -37,7 +37,7 @@ export interface Permission <PermissionTargetEntityType extends string>
 export interface PermissionTargetEntity <PermissionTargetEntityType extends string>
 {
 	id: string;
-	type: PermissionTargetEntity <PermissionTargetEntityType>;
+	type: PermissionTargetEntityType;
 };
 interface UserRoles <PermissionTargetEntityType extends string> extends Array<UserRole <PermissionTargetEntityType>> {};
 interface UserRole <PermissionTargetEntityType extends string>
