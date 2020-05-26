@@ -18,6 +18,20 @@ declare module '@chris-talman/rethink-permission-system'
 		/** [ domainId, permission type, negated, user role ID, user role type, subject entity ID, subject entity type, deleted ] */
 		subject: string;
 	}
+	export interface Permissions <PermissionTargetEntityType extends string> extends Array<Permission <PermissionTargetEntityType>> {}
+	export interface Permission <PermissionTargetEntityType extends string>
+	{
+		id: string;
+		type: string;
+		domainId: string;
+		/** The entity which is authorised to take an action. */
+		agent: PermissionTargetEntity <PermissionTargetEntityType>;
+		/** The entity on which the agent entity can take an action. */
+		subject?: PermissionTargetEntity <PermissionTargetEntityType>;
+		/** Determines whether permission should be denied for agent, negating any other permissions granting permission. */
+		negated?: boolean;
+		deleted?: true;
+	}
 	export interface PermissionTargetEntity <PermissionTargetEntityType extends string>
 	{
 		id: string;

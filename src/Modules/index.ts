@@ -31,7 +31,7 @@ export interface Permission <PermissionTargetEntityType extends string>
 	/** The entity on which the agent entity can take an action. */
 	subject?: PermissionTargetEntity <PermissionTargetEntityType>;
 	/** Determines whether permission should be denied for agent, negating any other permissions granting permission. */
-	negate?: boolean;
+	negated?: boolean;
 	deleted?: true;
 };
 export interface PermissionTargetEntity <PermissionTargetEntityType extends string>
