@@ -1,5 +1,5 @@
 {
-	"name": "@chris-talman/rethink-permissions-system",
+	"name": "@chris-talman/rethink-permission-system",
 	"version": "1.0.0",
 	"dependencies": {
 		"@chris-talman/rethink-utilities": "3.2.2",

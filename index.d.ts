@@ -1,4 +1,4 @@
-declare module '@chris-talman/rethink-permission-systems'
+declare module '@chris-talman/rethink-permission-system'
 {
 	// Types
 	import { RDatum } from 'rethinkdb-ts';
