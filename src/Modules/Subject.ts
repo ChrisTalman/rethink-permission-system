@@ -19,10 +19,10 @@ const NOT_NEGATED = false;
 const NOT_DELETED = false;
 
 /** Determines whether the user has the permission for the subject. */
-export async function isUserAuthorisedBySubject <GenericPermissionTypes extends Array<string>, GenericTargetEntity extends PermissionTargetEntity <any>>
+export async function isUserAuthorisedBySubject <GenericPermissionType extends string, GenericTargetEntity extends PermissionTargetEntity <any>>
 (
 	this: PermissionSystem <any, any, any, any>,
-	{domainId, userId, permission, subject}: {domainId: string, userId: string, permission: GenericPermissionTypes, subject: GenericTargetEntity}
+	{domainId, userId, permission, subject}: {domainId: string, userId: string, permission: GenericPermissionType, subject: GenericTargetEntity}
 )
 {
     const query = generateUserVariablesQuery({domainId, userId, system: this})

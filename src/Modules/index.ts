@@ -47,7 +47,14 @@ interface UserRole <PermissionTargetEntityType extends string>
 };
 
 
-export class PermissionSystem <GenericUser extends any, GenericPermissionTypes extends Array<string>, GenericPermissionTargetEntityType extends string, GenericTargetEntity extends PermissionTargetEntity <GenericPermissionTargetEntityType>>
+export class PermissionSystem
+<
+	GenericUser extends any,
+	GenericPermissionType extends string,
+	GenericPermissionTypes extends Array<GenericPermissionType>,
+	GenericPermissionTargetEntityType extends string,
+	GenericTargetEntity extends PermissionTargetEntity <GenericPermissionTargetEntityType>
+>
 {
 	public readonly table: string;
 	public readonly indexes: Indexes;

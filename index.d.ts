@@ -43,13 +43,20 @@ declare module '@chris-talman/rethink-permission-system'
 		id: RDatum<string>;
 		type: PermissionTargetEntityType;
 	}
-	export class PermissionSystem <GenericUser extends any, GenericPermissionTypes extends Array<string>, GenericPermissionTargetEntityType extends string, GenericTargetEntity extends PermissionTargetEntity <GenericPermissionTargetEntityType>>
+	export class PermissionSystem
+	<
+		GenericUser extends any,
+		GenericPermissionType extends string,
+		GenericPermissionTypes extends Array<GenericPermissionType>,
+		GenericPermissionTargetEntityType extends string,
+		GenericTargetEntity extends PermissionTargetEntity <GenericPermissionTargetEntityType>
+	>
 	{
 		public readonly table: string;
 		public readonly indexes: Indexes;
 		public readonly queries: Queries <GenericUser, GenericPermissionTargetEntityType>;
 		public isUserAuthorisedByRange <GenericPermissionTypes extends Array<string>> ({domainId, userId, permissions}: {domainId: string, userId: string, permissions: GenericPermissionTypes}): Promise<boolean>;
-		public isUserAuthorisedBySubject <GenericPermissionTypes extends Array<string>, GenericTargetEntity extends PermissionTargetEntity <any>> ({domainId, userId, permission, subject}: {domainId: string, userId: string, permission: GenericPermissionTypes, subject: GenericTargetEntity}): Promise<boolean>;
+		public isUserAuthorisedBySubject <GenericPermissionTypes extends Array<string>, GenericTargetEntity extends PermissionTargetEntity <any>> ({domainId, userId, permission, subject}: {domainId: string, userId: string, permission: GenericPermissionType, subject: GenericTargetEntity}): Promise<boolean>;
 		constructor({table, indexes, queries}: {table: string, indexes: Indexes, queries: Queries <GenericUser, GenericPermissionTargetEntityType>});
 	}
 }
