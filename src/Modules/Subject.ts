@@ -21,7 +21,7 @@ const NOT_DELETED = false;
 /** Determines whether the user has the permission for the subject. */
 export async function isUserAuthorisedBySubject <GenericPermissionType extends string, GenericTargetEntity extends PermissionTargetEntity <any>>
 (
-	this: PermissionSystem <any, any, any, any, any>,
+	this: PermissionSystem <any, any, any, any>,
 	{domainId, userId, permission, subject}: {domainId: string, userId: string, permission: GenericPermissionType, subject: GenericTargetEntity}
 )
 {

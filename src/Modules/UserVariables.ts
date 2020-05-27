@@ -13,7 +13,7 @@ export interface UserVariables <GenericUser extends any>
 	user: RDatum<GenericUser>
 };
 
-export function generateUserVariablesQuery({domainId, userId, system}: {domainId: string, userId: string, system: PermissionSystem <any, any, any, any, any>})
+export function generateUserVariablesQuery({domainId, userId, system}: {domainId: string, userId: string, system: PermissionSystem <any, any, any, any>})
 {
 	const query = RethinkDB
 		.expr

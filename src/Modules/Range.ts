@@ -19,7 +19,7 @@ const NOT_NEGATED = false;
 const NOT_DELETED = false;
 
 /** Determines whether the user has at least one permission in a range of possible permission types. */
-export async function isUserAuthorisedByRange <GenericPermissionTypes extends Array<string>> (this: PermissionSystem <any, any, any, any, any>, {domainId, userId, permissions}: {domainId: string, userId: string, permissions: GenericPermissionTypes})
+export async function isUserAuthorisedByRange <GenericPermissionTypes extends Array<string>> (this: PermissionSystem <any, any, any, any>, {domainId, userId, permissions}: {domainId: string, userId: string, permissions: GenericPermissionTypes})
 {
 	const query = generateUserVariablesQuery({domainId, userId, system: this})
 		.do

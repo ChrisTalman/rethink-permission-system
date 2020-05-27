@@ -6,12 +6,12 @@ import { isUserAuthorisedBySubject } from './Subject';
 
 // Types
 import { RDatum } from 'rethinkdb-ts';
-interface Queries <GenericUser extends any, GenericPermissionTargetEntityType extends string>
+interface Queries <GenericUser extends any, GenericTargetEntityType extends string>
 {
 	user: ({domainId, userId}: {domainId: string, userId: string}) => RDatum<GenericUser>;
 	globalAuthorised?: ({domainId, userId, user}: {domainId: string, userId: string, user: RDatum<GenericUser>}) => RDatum <boolean>;
 	organisationAuthorised?: ({domainId, userId, user}: {domainId: string, userId: string, user: RDatum<GenericUser>}) => RDatum <boolean>;
-	userRoles: ({domainId, userId, user}: {domainId: string, userId: string, user: RDatum<GenericUser>}) => RDatum <UserRoles <GenericPermissionTargetEntityType>>;
+	userRoles: ({domainId, userId, user}: {domainId: string, userId: string, user: RDatum<GenericUser>}) => RDatum <UserRoles <GenericTargetEntityType>>;
 };
 interface Indexes
 {
@@ -51,17 +51,16 @@ export class PermissionSystem
 <
 	GenericUser extends any,
 	GenericPermissionType extends string,
-	GenericPermissionTypes extends Array<GenericPermissionType>,
-	GenericPermissionTargetEntityType extends string,
-	GenericTargetEntity extends PermissionTargetEntity <GenericPermissionTargetEntityType>
+	GenericTargetEntityType extends string,
+	GenericSubjectTargetEntityType extends string
 >
 {
 	public readonly table: string;
 	public readonly indexes: Indexes;
-	public readonly queries: Queries <GenericUser, GenericPermissionTargetEntityType>;
+	public readonly queries: Queries <GenericUser, GenericTargetEntityType>;
 	public isAuthorisedByRange = isUserAuthorisedByRange;
 	public isUserAuthorisedBySubject = isUserAuthorisedBySubject;
-	constructor({table, indexes, queries}: {table: string, indexes: Indexes, queries: Queries <GenericUser, GenericPermissionTargetEntityType>})
+	constructor({table, indexes, queries}: {table: string, indexes: Indexes, queries: Queries <GenericUser, GenericTargetEntityType>})
 	{
 		this.table = table;
 		this.indexes = indexes;
