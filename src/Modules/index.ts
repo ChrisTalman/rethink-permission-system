@@ -59,7 +59,7 @@ export class PermissionSystem
 	public readonly indexes: Indexes;
 	public readonly queries: Queries <GenericUser, GenericTargetEntityType>;
 	public isAuthorisedByRange = isUserAuthorisedByRange;
-	public isUserAuthorisedBySubject = isUserAuthorisedBySubject;
+	public isAuthorisedBySubject = isUserAuthorisedBySubject;
 	constructor({table, indexes, queries}: {table: string, indexes: Indexes, queries: Queries <GenericUser, GenericTargetEntityType>})
 	{
 		this.table = table;
