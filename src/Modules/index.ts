@@ -1,12 +1,11 @@
 'use strict';
 
 // Internal Modules
-import { isUserAuthorisedByRange } from './Range';
-import { isUserAuthorisedBySubject } from './Subject';
+import { isUserAuthorised } from './Authorised';
 
 // Types
 import { RDatum } from 'rethinkdb-ts';
-interface Queries <GenericUser extends any, GenericTargetEntityType extends string>
+export interface Queries <GenericUser extends any, GenericTargetEntityType extends string>
 {
 	user: ({domainId, userId}: {domainId: string, userId: string}) => RDatum<GenericUser>;
 	globalAuthorised?: ({domainId, userId, user}: {domainId: string, userId: string, user: RDatum<GenericUser>}) => RDatum <boolean>;
@@ -39,7 +38,7 @@ export interface PermissionTargetEntity <PermissionTargetEntityType extends stri
 	id: string;
 	type: PermissionTargetEntityType;
 };
-interface UserRoles <PermissionTargetEntityType extends string> extends Array<UserRole <PermissionTargetEntityType>> {};
+export interface UserRoles <PermissionTargetEntityType extends string> extends Array<UserRole <PermissionTargetEntityType>> {};
 interface UserRole <PermissionTargetEntityType extends string>
 {
 	id: RDatum<string>;
@@ -58,8 +57,7 @@ export class PermissionSystem
 	public readonly table: string;
 	public readonly indexes: Indexes;
 	public readonly queries: Queries <GenericUser, GenericTargetEntityType>;
-	public isAuthorisedByRange = isUserAuthorisedByRange;
-	public isAuthorisedBySubject = isUserAuthorisedBySubject;
+	public isUserAuthorised = isUserAuthorised;
 	constructor({table, indexes, queries}: {table: string, indexes: Indexes, queries: Queries <GenericUser, GenericTargetEntityType>})
 	{
 		this.table = table;

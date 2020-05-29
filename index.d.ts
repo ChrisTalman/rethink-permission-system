@@ -54,8 +54,26 @@ declare module '@chris-talman/rethink-permission-system'
 		public readonly table: string;
 		public readonly indexes: Indexes;
 		public readonly queries: Queries <GenericUser, GenericTargetEntityType>;
-		public isAuthorisedByRange({domainId, userId, permissions}: {domainId: string, userId: string, permissions: Array<GenericPermissionType>}): Promise<boolean>;
-		public isAuthorisedBySubject({domainId, userId, permission, subject}: {domainId: string, userId: string, permission: GenericPermissionType, subject: PermissionTargetEntity <GenericSubjectTargetEntityType>}): Promise<boolean>;
+		public isUserAuthorised({domainId, userId, permissions}: {domainId: string, userId: string, permissions: IsUserAuthorised.PermissionParameters <GenericPermissionType, GenericSubjectTargetEntityType>}): Promise<boolean>;
 		constructor({table, indexes, queries}: {table: string, indexes: Indexes, queries: Queries <GenericUser, GenericTargetEntityType>});
+	}
+
+	// Is User Authorised
+	export namespace IsUserAuthorised
+	{
+		export interface PermissionParameters <GenericPermissionType extends string, GenericSubjectTargetEntityType extends string> extends Array<PermissionParameter <GenericPermissionType, GenericSubjectTargetEntityType>> {}
+		export type PermissionParameter <GenericPermissionType extends string, GenericSubjectTargetEntityType extends string> = RangePermissionParameter <GenericPermissionType> | SubjectPermissionParameter <GenericPermissionType, GenericSubjectTargetEntityType>;
+		export interface RangePermissionParameter <GenericPermissionType extends string>
+		{
+			range:
+			{
+				types: Array<GenericPermissionType>;
+			};
+		}
+		export interface SubjectPermissionParameter <GenericPermissionType extends string, GenericSubjectTargetEntityType extends string>
+		{
+			type: GenericPermissionType;
+			subject: PermissionTargetEntity <GenericSubjectTargetEntityType>;
+		}
 	}
 }
