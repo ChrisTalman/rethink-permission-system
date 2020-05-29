@@ -72,11 +72,11 @@ export async function isUserAuthorised <GenericPermissionType extends string, Ge
 													{
 														if ('range' in permission)
 														{
-															return generateUserAuthorisedByRangeQuery({domainId, userRoles, permissions: permission.range.types});
+															return generateUserAuthorisedByRangeQuery({domainId, userRoles, permissions: permission.range.types, system: this});
 														}
 														else if ('subject' in permission)
 														{
-															return generateUserAuthorisedBySubjectQuery({domainId, userRoles, permission: permission.type, subject: permission.subject})
+															return generateUserAuthorisedBySubjectQuery({domainId, userRoles, permission: permission.type, subject: permission.subject, system: this})
 														}
 														else
 														{

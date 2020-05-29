@@ -5,7 +5,7 @@ import { r as RethinkDB } from 'rethinkdb-ts';
 
 // Types
 import { RDatum } from 'rethinkdb-ts';
-import { Permission, UserRoles } from 'src/Modules';
+import { PermissionSystem, Permission, UserRoles } from 'src/Modules';
 import { PermissionParameterEvaluation } from './';
 
 // Constants
@@ -14,7 +14,7 @@ const NOT_NEGATED = false;
 const NOT_DELETED = false;
 
 export function generateUserAuthorisedByRangeQuery <GenericPermissionTypes extends Array<string>, GenericTargetEntityType extends string>
-({domainId, userRoles, permissions}: {domainId: string, userRoles: RDatum <UserRoles <GenericTargetEntityType>>, permissions: GenericPermissionTypes})
+({domainId, userRoles, permissions, system}: {domainId: string, userRoles: RDatum <UserRoles <GenericTargetEntityType>>, permissions: GenericPermissionTypes, system: PermissionSystem <any, any, any, any>})
 {
 	const query: RDatum <PermissionParameterEvaluation> = RethinkDB
 		.expr
@@ -24,7 +24,7 @@ export function generateUserAuthorisedByRangeQuery <GenericPermissionTypes exten
 					.concatMap
 					(
 						role => RethinkDB
-							.table<Permission <any>>(this.table)
+							.table<Permission <any>>(system.table)
 							.getAll
 							(
 								RethinkDB.args
@@ -34,7 +34,7 @@ export function generateUserAuthorisedByRangeQuery <GenericPermissionTypes exten
 										permissionType => [ domainId, permissionType, NOT_NEGATED, role('id'), role('type'), NOT_DELETED ]
 									)
 								),
-								{ index: this.indexes.range }
+								{ index: system.indexes.range }
 							)
 					)
 					.count()
@@ -43,7 +43,7 @@ export function generateUserAuthorisedByRangeQuery <GenericPermissionTypes exten
 					.concatMap
 					(
 						role => RethinkDB
-							.table<Permission <any>>(this.table)
+							.table<Permission <any>>(system.table)
 							.getAll
 							(
 								RethinkDB.args
@@ -53,7 +53,7 @@ export function generateUserAuthorisedByRangeQuery <GenericPermissionTypes exten
 										permissionType => [ domainId, permissionType, NEGATED, role('id'), role('type'), NOT_DELETED ]
 									)
 								),
-								{ index: this.indexes.range }
+								{ index: system.indexes.range }
 							)
 					)
 					.group('type')
