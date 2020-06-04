@@ -25,8 +25,11 @@ interface RangePermissionParameter <GenericPermissionType extends string>
 };
 interface SubjectPermissionParameter <GenericPermissionType extends string, GenericSubjectTargetEntityType extends string>
 {
-	type: GenericPermissionType;
-	subject: PermissionTargetEntity <GenericSubjectTargetEntityType>;
+	subject:
+	{
+		type: GenericPermissionType;
+		entity: PermissionTargetEntity <GenericSubjectTargetEntityType>;
+	};
 };
 export interface PermissionParameterEvaluation
 {
@@ -76,7 +79,7 @@ export async function isUserAuthorised <GenericPermissionType extends string, Ge
 														}
 														else if ('subject' in permission)
 														{
-															return generateUserAuthorisedBySubjectQuery({domainId, userRoles, permission: permission.type, subject: permission.subject, system: this})
+															return generateUserAuthorisedBySubjectQuery({domainId, userRoles, permission: permission.subject.type, subject: permission.subject.entity, system: this})
 														}
 														else
 														{

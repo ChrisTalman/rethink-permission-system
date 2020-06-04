@@ -72,8 +72,11 @@ declare module '@chris-talman/rethink-permission-system'
 		}
 		export interface SubjectPermissionParameter <GenericPermissionType extends string, GenericSubjectTargetEntityType extends string>
 		{
-			type: GenericPermissionType;
-			subject: PermissionTargetEntity <GenericSubjectTargetEntityType>;
+			subject:
+			{
+				type: GenericPermissionType;
+				entity: PermissionTargetEntity <GenericSubjectTargetEntityType>;
+			};
 		}
 	}
 }
