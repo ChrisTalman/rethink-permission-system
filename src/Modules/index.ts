@@ -1,7 +1,7 @@
 'use strict';
 
 // Internal Modules
-import { isUserAuthorised } from './Authorised';
+import { isUserAuthorised, generateIsUserAuthorisedQuery } from './Authorised';
 
 // Types
 import { RDatum } from 'rethinkdb-ts';
@@ -58,6 +58,7 @@ export class PermissionSystem
 	public readonly indexes: Indexes;
 	public readonly queries: Queries <GenericUser, GenericTargetEntityType>;
 	public isUserAuthorised = isUserAuthorised;
+	public generateIsUserAuthorisedQuery = generateIsUserAuthorisedQuery;
 	constructor({table, indexes, queries}: {table: string, indexes: Indexes, queries: Queries <GenericUser, GenericTargetEntityType>})
 	{
 		this.table = table;

@@ -50,20 +50,40 @@ export async function isUserAuthorised <GenericPermissionType extends string, Ge
 	{domainId, userId, permissions}: {domainId: string, userId: string, permissions: PermissionParameters <GenericPermissionType, GenericSubjectTargetEntityType>}
 )
 {
-	const query = generateUserVariablesQuery({domainId, userId, system: this})
+	const query = generateQuery({domainId, userId, permissions, system: this});
+	const authorised = await rethinkRun({query, options: {throwRuntime: false}}) as boolean;
+	return authorised;
+};
+
+export function generateIsUserAuthorisedQuery <GenericPermissionType extends string, GenericSubjectTargetEntityType extends string>
+(
+	this: PermissionSystem <any, any, any, any>,
+	{domainId, userId, permissions}: {domainId: string, userId: string, permissions: PermissionParameters <GenericPermissionType, GenericSubjectTargetEntityType>}
+)
+{
+	const query = generateQuery({domainId, userId, permissions, system: this});
+	return query;
+};
+
+function generateQuery <GenericPermissionType extends string, GenericSubjectTargetEntityType extends string>
+(
+	{domainId, userId, permissions, system}: {domainId: string, userId: string, permissions: PermissionParameters <GenericPermissionType, GenericSubjectTargetEntityType>, system: PermissionSystem <any, any, any, any>}
+)
+{
+	const query = generateUserVariablesQuery({domainId, userId, system})
 		.do
 		(
 			(variables: RDatum <UserVariables <any>>) => RethinkDB
 				.or
 				(
-					this.queries.globalAuthorised ? this.queries.globalAuthorised({domainId, userId, user: variables('user')}) : false,
+					system.queries.globalAuthorised ? system.queries.globalAuthorised({domainId, userId, user: variables('user')}) : false,
 					RethinkDB.and
 					(
-						this.queries.organisationAuthorised ? this.queries.organisationAuthorised({domainId, userId, user: variables('user')}) : true,
-						this.queries.userRoles({domainId, userId, user: variables('user')})
+						system.queries.organisationAuthorised ? system.queries.organisationAuthorised({domainId, userId, user: variables('user')}) : true,
+						system.queries.userRoles({domainId, userId, user: variables('user')})
 							.do
 							(
-								(userRoles: ReturnType<typeof this.queries.userRoles>) =>
+								(userRoles: ReturnType<typeof system.queries.userRoles>) =>
 								(
 									RethinkDB
 										.expr
@@ -75,11 +95,11 @@ export async function isUserAuthorised <GenericPermissionType extends string, Ge
 													{
 														if ('range' in permission)
 														{
-															return generateUserAuthorisedByRangeQuery({domainId, userRoles, permissions: permission.range.types, system: this});
+															return generateUserAuthorisedByRangeQuery({domainId, userRoles, permissions: permission.range.types, system});
 														}
 														else if ('subject' in permission)
 														{
-															return generateUserAuthorisedBySubjectQuery({domainId, userRoles, permission: permission.subject.type, subject: permission.subject.entity, system: this})
+															return generateUserAuthorisedBySubjectQuery({domainId, userRoles, permission: permission.subject.type, subject: permission.subject.entity, system})
 														}
 														else
 														{
@@ -118,6 +138,5 @@ export async function isUserAuthorised <GenericPermissionType extends string, Ge
 					)
 				)
 		);
-	const authorised = await rethinkRun({query, options: {throwRuntime: false}}) as boolean;
-	return authorised;
+	return query;
 };

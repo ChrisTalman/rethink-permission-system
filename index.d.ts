@@ -54,7 +54,8 @@ declare module '@chris-talman/rethink-permission-system'
 		public readonly table: string;
 		public readonly indexes: Indexes;
 		public readonly queries: Queries <GenericUser, GenericTargetEntityType>;
-		public isUserAuthorised({domainId, userId, permissions}: {domainId: string, userId: string, permissions: IsUserAuthorised.PermissionParameters <GenericPermissionType, GenericSubjectTargetEntityType>}): Promise<boolean>;
+		public isUserAuthorised({domainId, userId, permissions}: {domainId: string, userId: string, permissions: IsUserAuthorised.PermissionParameters <GenericPermissionType, GenericSubjectTargetEntityType>}): Promise <boolean>;
+		public generateIsUserAuthorisedQuery({domainId, userId, permissions}: {domainId: string, userId: string, permissions: IsUserAuthorised.PermissionParameters <GenericPermissionType, GenericSubjectTargetEntityType>}): RDatum <boolean>;
 		constructor({table, indexes, queries}: {table: string, indexes: Indexes, queries: Queries <GenericUser, GenericTargetEntityType>});
 	}
 
