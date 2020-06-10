@@ -55,19 +55,19 @@ export async function isUserAuthorised <GenericPermissionType extends string, Ge
 	return authorised;
 };
 
-export function generateIsUserAuthorisedQuery <GenericPermissionType extends string, GenericSubjectTargetEntityType extends string>
+export function generateIsUserAuthorisedQuery <GenericPermissionType extends string, GenericSubjectTargetEntityType extends string, GenericPermissions extends PermissionParameters <GenericPermissionType, GenericSubjectTargetEntityType>>
 (
 	this: PermissionSystem <any, any, any, any>,
-	{domainId, userId, permissions}: {domainId: string, userId: string, permissions: PermissionParameters <GenericPermissionType, GenericSubjectTargetEntityType>}
+	{domainId, userId, permissions}: {domainId: string, userId: string, permissions: GenericPermissions | RDatum <GenericPermissions>}
 )
 {
 	const query = generateQuery({domainId, userId, permissions, system: this});
 	return query;
 };
 
-function generateQuery <GenericPermissionType extends string, GenericSubjectTargetEntityType extends string>
+function generateQuery <GenericPermissionType extends string, GenericSubjectTargetEntityType extends string, GenericPermissions extends PermissionParameters <GenericPermissionType, GenericSubjectTargetEntityType>>
 (
-	{domainId, userId, permissions, system}: {domainId: string, userId: string, permissions: PermissionParameters <GenericPermissionType, GenericSubjectTargetEntityType>, system: PermissionSystem <any, any, any, any>}
+	{domainId, userId, permissions, system}: {domainId: string, userId: string, permissions: GenericPermissions | RDatum <GenericPermissions>, system: PermissionSystem <any, any, any, any>}
 )
 {
 	const query = generateUserVariablesQuery({domainId, userId, system})
@@ -86,26 +86,36 @@ function generateQuery <GenericPermissionType extends string, GenericSubjectTarg
 								(userRoles: ReturnType<typeof system.queries.userRoles>) =>
 								(
 									RethinkDB
-										.expr
+										.expr(permissions)
+										.map
 										(
-											permissions
-												.map
+											permission => RethinkDB
+												.branch
 												(
-													permission =>
-													{
-														if ('range' in permission)
+													permission.hasFields('range'),
+													generateUserAuthorisedByRangeQuery
+													(
 														{
-															return generateUserAuthorisedByRangeQuery({domainId, userRoles, permissions: permission.range.types, system});
+															domainId,
+															userRoles,
+															permissions: (permission as unknown as RDatum <RangePermissionParameter <GenericPermissionType>>)('range')('types'),
+															system
 														}
-														else if ('subject' in permission)
+													),
+													permission.hasFields('subject'),
+													generateUserAuthorisedBySubjectQuery
+													(
 														{
-															return generateUserAuthorisedBySubjectQuery({domainId, userRoles, permission: permission.subject.type, subject: permission.subject.entity, system})
-														}
-														else
-														{
-															throw new Error(`Expected properties 'range' or 'subject', but got neither`);
-														};
-													}
+															domainId,
+															userRoles,
+															permission:
+															(
+																permission as unknown as RDatum <SubjectPermissionParameter <GenericPermissionType, GenericSubjectTargetEntityType>>)('subject')('type'),
+																subject: (permission as unknown as RDatum <SubjectPermissionParameter <GenericPermissionType, GenericSubjectTargetEntityType>>)('subject')('entity'),
+																system
+															}
+														),
+													RethinkDB.error(`Expected properties 'range' or 'subject', but got neither`)
 												)
 										)
 										.do

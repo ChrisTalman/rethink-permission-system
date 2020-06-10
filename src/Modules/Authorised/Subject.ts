@@ -14,7 +14,16 @@ const NOT_NEGATED = false;
 const NOT_DELETED = false;
 
 export function generateUserAuthorisedBySubjectQuery <GenericPermissionType extends string, GenericTargetEntityType extends string, GenericTargetEntity extends PermissionTargetEntity <any>>
-({domainId, userRoles, permission, subject, system}: {domainId: string, userRoles: RDatum <UserRoles <GenericTargetEntityType>>, permission: GenericPermissionType, subject: GenericTargetEntity, system: PermissionSystem <any, any, any, any>})
+(
+	{domainId, userRoles, permission, subject, system}:
+	{
+		domainId: string,
+		userRoles: RDatum <UserRoles <GenericTargetEntityType>>,
+		permission: RDatum <GenericPermissionType>,
+		subject: RDatum <GenericTargetEntity>,
+		system: PermissionSystem <any, any, any, any>
+	}
+)
 {
 	const query: RDatum <PermissionParameterEvaluation> = RethinkDB
 		.expr
@@ -27,7 +36,7 @@ export function generateUserAuthorisedBySubjectQuery <GenericPermissionType exte
 							.table<Permission <any>>(system.table)
 							.getAll
 							(
-								[ domainId, permission, NOT_NEGATED, role('id'), role('type'), subject.id, subject.type, NOT_DELETED ],
+								[ domainId, permission, NOT_NEGATED, role('id'), role('type'), subject('id'), subject('type'), NOT_DELETED ],
 								{ index: system.indexes.subject }
 							)
 					)
@@ -40,7 +49,7 @@ export function generateUserAuthorisedBySubjectQuery <GenericPermissionType exte
 							.table<Permission <any>>(system.table)
 							.getAll
 							(
-								[ domainId, permission, NEGATED, role('id'), role('type'), subject.id, subject.type, NOT_DELETED ],
+								[ domainId, permission, NEGATED, role('id'), role('type'), subject('id'), subject('type'), NOT_DELETED ],
 								{ index: system.indexes.subject }
 							)
 					)

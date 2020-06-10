@@ -14,7 +14,15 @@ const NOT_NEGATED = false;
 const NOT_DELETED = false;
 
 export function generateUserAuthorisedByRangeQuery <GenericPermissionTypes extends Array<string>, GenericTargetEntityType extends string>
-({domainId, userRoles, permissions, system}: {domainId: string, userRoles: RDatum <UserRoles <GenericTargetEntityType>>, permissions: GenericPermissionTypes, system: PermissionSystem <any, any, any, any>})
+(
+	{domainId, userRoles, permissions, system}:
+	{
+		domainId: string,
+		userRoles: RDatum <UserRoles <GenericTargetEntityType>>,
+		permissions: RDatum <GenericPermissionTypes>,
+		system: PermissionSystem <any, any, any, any>
+	}
+)
 {
 	const query: RDatum <PermissionParameterEvaluation> = RethinkDB
 		.expr
@@ -32,7 +40,7 @@ export function generateUserAuthorisedByRangeQuery <GenericPermissionTypes exten
 									permissions.map
 									(
 										permissionType => [ domainId, permissionType, NOT_NEGATED, role('id'), role('type'), NOT_DELETED ]
-									)
+									) as unknown as Array <string>
 								),
 								{ index: system.indexes.range }
 							)
@@ -51,7 +59,7 @@ export function generateUserAuthorisedByRangeQuery <GenericPermissionTypes exten
 									permissions.map
 									(
 										permissionType => [ domainId, permissionType, NEGATED, role('id'), role('type'), NOT_DELETED ]
-									)
+									) as unknown as Array <string>
 								),
 								{ index: system.indexes.range }
 							)
