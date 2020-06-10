@@ -54,7 +54,7 @@ export function generateUserAuthorisedBySubjectQuery <GenericPermissionType exte
 							)
 					)
 					.count()
-					.eq(0)
+					.gt(0)
 			}
 		)
 		.merge
