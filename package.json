@@ -1,6 +1,6 @@
 {
 	"name": "@chris-talman/rethink-permission-system",
-	"version": "3.2.1",
+	"version": "3.2.2",
 	"dependencies": {
 		"@chris-talman/rethink-utilities": "3.2.2",
 		"rethinkdb-ts": ">=2.4.2"

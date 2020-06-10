@@ -131,7 +131,7 @@ function generateQuery <GenericPermissionType extends string, GenericSubjectTarg
 														negated: evaluations
 															.filter((evaluation: RDatum <AggregatePermissionEvaluation>) => evaluation('negated'))
 															.count()
-															.eq(0)
+															.gt(0)
 													}
 												)
 												.do
