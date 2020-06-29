@@ -16,29 +16,42 @@ import { PermissionTargetEntity } from 'src/Modules';
 import { UserVariables } from 'src/Modules/UserVariables';
 interface PermissionParameters <GenericPermissionType extends string, GenericSubjectTargetEntityType extends string> extends Array<PermissionParameter <GenericPermissionType, GenericSubjectTargetEntityType>> {};
 type PermissionParameter <GenericPermissionType extends string, GenericSubjectTargetEntityType extends string> = RangePermissionParameter <GenericPermissionType> | SubjectPermissionParameter <GenericPermissionType, GenericSubjectTargetEntityType>;
-interface RangePermissionParameter <GenericPermissionType extends string>
+interface BasePermissionParameter
 {
-	range:
-	{
-		types: Array<GenericPermissionType>;
-	};
+	/** At least one permission must be authorised, but not necessarily this one. */
+	some?: boolean;
 };
-interface SubjectPermissionParameter <GenericPermissionType extends string, GenericSubjectTargetEntityType extends string>
+export interface RangePermissionParameter <GenericPermissionType extends string>
 {
-	subject:
-	{
-		type: GenericPermissionType;
-		entity: PermissionTargetEntity <GenericSubjectTargetEntityType>;
-	};
+	range: RangePermissionParameterRange <GenericPermissionType>;
+};
+export interface RangePermissionParameterRange <GenericPermissionType extends string> extends BasePermissionParameter
+{
+	types: Array<GenericPermissionType>;
+};
+export interface SubjectPermissionParameter <GenericPermissionType extends string, GenericSubjectTargetEntityType extends string>
+{
+	subject: SubjectPermissionParameterSubject <GenericPermissionType, GenericSubjectTargetEntityType>;
+};
+export interface SubjectPermissionParameterSubject <GenericPermissionType extends string, GenericSubjectTargetEntityType extends string> extends BasePermissionParameter
+{
+	type: GenericPermissionType;
+	entity: PermissionTargetEntity <GenericSubjectTargetEntityType>;
 };
 export interface PermissionParameterEvaluation
 {
 	granted: boolean;
 	negated: boolean;
 	authorised: boolean;
+	parameter: BasePermissionParameter;
 };
 export interface AggregatePermissionEvaluation
 {
+	/** All required permissions are authorised. */
+	authorisedRequired: boolean;
+	/** At least one permission is authorised. */
+	authorisedSome: boolean;
+	/** At least one permission is authorised, and if any are required, all of those are authorised. */
 	authorised: boolean;
 	negated: boolean;
 };
@@ -99,6 +112,7 @@ function generateQuery <GenericPermissionType extends string, GenericSubjectTarg
 															domainId,
 															userRoles,
 															permissions: (permission as unknown as RDatum <RangePermissionParameter <GenericPermissionType>>)('range')('types'),
+															parameter: permission as unknown as RDatum <RangePermissionParameter <GenericPermissionType>>,
 															system
 														}
 													),
@@ -108,39 +122,68 @@ function generateQuery <GenericPermissionType extends string, GenericSubjectTarg
 														{
 															domainId,
 															userRoles,
-															permission:
-															(
-																permission as unknown as RDatum <SubjectPermissionParameter <GenericPermissionType, GenericSubjectTargetEntityType>>)('subject')('type'),
-																subject: (permission as unknown as RDatum <SubjectPermissionParameter <GenericPermissionType, GenericSubjectTargetEntityType>>)('subject')('entity'),
-																system
-															}
-														),
+															permission: (permission as unknown as RDatum <SubjectPermissionParameter <GenericPermissionType, GenericSubjectTargetEntityType>>)('subject')('type'),
+															subject: (permission as unknown as RDatum <SubjectPermissionParameter <GenericPermissionType, GenericSubjectTargetEntityType>>)('subject')('entity'),
+															parameter: permission as unknown as RDatum <SubjectPermissionParameter <GenericPermissionType, GenericSubjectTargetEntityType>>,
+															system
+														}
+													),
 													RethinkDB.error(`Expected properties 'range' or 'subject', but got neither`)
 												)
 										)
 										.do
 										(
-											(evaluations: any) => RethinkDB
+											(evaluations: RDatum <Array <PermissionParameterEvaluation>>) => RethinkDB
 												.expr
 												(
 													{
-														authorised: evaluations
-															.filter((evaluation: RDatum <AggregatePermissionEvaluation>) => evaluation('authorised'))
+														authorisedRequired: evaluations
+															.filter
+															(
+																evaluation => RethinkDB.and
+																(
+																	RethinkDB.or
+																	(
+																		evaluation('parameter').hasFields('some').eq(false),
+																		evaluation('parameter')('some').eq(false)
+																	),
+																	evaluation('authorised').eq(false)
+																)
+															)
 															.count()
-															.gt(0),
-														negated: evaluations
-															.filter((evaluation: RDatum <AggregatePermissionEvaluation>) => evaluation('negated'))
+															.eq(0),
+														authorisedSome: evaluations
+															.filter(evaluation => evaluation('authorised'))
 															.count()
 															.gt(0)
 													}
 												)
+												.merge
+												(
+													(evaluation: RDatum <Omit <AggregatePermissionEvaluation, 'authorised' | 'negated'>>) =>
+													(
+														{
+															authorised: RethinkDB.and
+															(
+																evaluation('authorisedRequired'),
+																evaluation('authorisedSome')
+															),
+															negated: evaluations
+																.filter(evaluation => evaluation('negated'))
+																.count()
+																.gt(0)
+														}
+													)
+												)
 												.do
 												(
-													(evaluation: RDatum <AggregatePermissionEvaluation>) => RethinkDB.and
 													(
-														evaluation('authorised').eq(true),
-														evaluation('negated').eq(false)
-													)
+														(evaluation: RDatum <AggregatePermissionEvaluation>) => RethinkDB.and
+														(
+															evaluation('authorised').eq(true),
+															evaluation('negated').eq(false)
+														)
+													) as RDatum <any>
 												)
 										)
 								)

@@ -64,20 +64,27 @@ declare module '@chris-talman/rethink-permission-system'
 	{
 		export interface PermissionParameters <GenericPermissionType extends string, GenericSubjectTargetEntityType extends string> extends Array<PermissionParameter <GenericPermissionType, GenericSubjectTargetEntityType>> {}
 		export type PermissionParameter <GenericPermissionType extends string, GenericSubjectTargetEntityType extends string> = RangePermissionParameter <GenericPermissionType> | SubjectPermissionParameter <GenericPermissionType, GenericSubjectTargetEntityType>;
+		interface BasePermissionParameter
+		{
+			/** At least one permission must be authorised, but not necessarily this one. */
+			some?: boolean;
+		}
 		export interface RangePermissionParameter <GenericPermissionType extends string>
 		{
-			range:
-			{
-				types: Array<GenericPermissionType>;
-			};
+			range: RangePermissionParameterRange <GenericPermissionType>;
+		}
+		export interface RangePermissionParameterRange <GenericPermissionType extends string> extends BasePermissionParameter
+		{
+			types: Array<GenericPermissionType>;
 		}
 		export interface SubjectPermissionParameter <GenericPermissionType extends string, GenericSubjectTargetEntityType extends string>
 		{
-			subject:
-			{
-				type: GenericPermissionType;
-				entity: PermissionTargetEntity <GenericSubjectTargetEntityType>;
-			};
+			subject: SubjectPermissionParameterSubject <GenericPermissionType, GenericSubjectTargetEntityType>;
+		}
+		export interface SubjectPermissionParameterSubject <GenericPermissionType extends string, GenericSubjectTargetEntityType extends string> extends BasePermissionParameter
+		{
+			type: GenericPermissionType;
+			entity: PermissionTargetEntity <GenericSubjectTargetEntityType>;
 		}
 	}
 }

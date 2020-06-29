@@ -6,7 +6,7 @@ import { r as RethinkDB } from 'rethinkdb-ts';
 // Types
 import { RDatum } from 'rethinkdb-ts';
 import { PermissionSystem, Permission, UserRoles } from 'src/Modules';
-import { PermissionParameterEvaluation } from './';
+import { RangePermissionParameter, PermissionParameterEvaluation } from './';
 
 // Constants
 const NEGATED = true;
@@ -15,11 +15,12 @@ const NOT_DELETED = false;
 
 export function generateUserAuthorisedByRangeQuery <GenericPermissionTypes extends Array<string>, GenericTargetEntityType extends string>
 (
-	{domainId, userRoles, permissions, system}:
+	{domainId, userRoles, permissions, parameter, system}:
 	{
 		domainId: string,
 		userRoles: RDatum <UserRoles <GenericTargetEntityType>>,
 		permissions: RDatum <GenericPermissionTypes>,
+		parameter: RDatum <RangePermissionParameter <any>>,
 		system: PermissionSystem <any, any, any, any>
 	}
 )
@@ -67,7 +68,8 @@ export function generateUserAuthorisedByRangeQuery <GenericPermissionTypes exten
 					.group('type')
 					.ungroup()
 					.count()
-					.lt(permissions.length)
+					.lt(permissions.length),
+				parameter
 			}
 		)
 		.merge
