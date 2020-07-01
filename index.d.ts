@@ -21,9 +21,9 @@ declare module '@chris-talman/rethink-permission-system'
 	export interface Permissions <PermissionTargetEntityType extends string> extends Array <Permission <PermissionTargetEntityType>> {}
 	export interface Permission <PermissionTargetEntityType extends string>
 	{
-		id: string | RDatum <string>;
-		type: string | RDatum <string>;
-		domainId: string | RDatum <string>;
+		id: string;
+		type: string;
+		domainId: string;
 		/** The entity which is authorised to take an action. */
 		agent: PermissionTargetEntity <PermissionTargetEntityType>;
 		/** The entity on which the agent entity can take an action. */
