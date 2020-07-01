@@ -6,10 +6,10 @@ declare module '@chris-talman/rethink-permission-system'
 	// Class
 	export interface Queries <GenericUser extends any, GenericPermissionTargetEntityType extends string>
 	{
-		user: ({domainId, userId}: {domainId: string, userId: string}) => RDatum<GenericUser>;
-		globalAuthorised?: ({domainId, userId, user}: {domainId: string, userId: string, user: RDatum<GenericUser>}) => RDatum <boolean>;
-		organisationAuthorised?: ({domainId, userId, user}: {domainId: string, userId: string, user: RDatum<GenericUser>}) => RDatum <boolean>;
-		userRoles: ({domainId, userId, user}: {domainId: string, userId: string, user: RDatum<GenericUser>}) => RDatum <UserRoles <GenericPermissionTargetEntityType>>;
+		user: ({domainId, userId}: {domainId: string | RDatum <string>, userId: string | RDatum <string>}) => RDatum<GenericUser>;
+		globalAuthorised?: ({domainId, userId, user}: {domainId: string | RDatum <string>, userId: string | RDatum <string>, user: RDatum<GenericUser>}) => RDatum <boolean>;
+		organisationAuthorised?: ({domainId, userId, user}: {domainId: string | RDatum <string>, userId: string | RDatum <string>, user: RDatum<GenericUser>}) => RDatum <boolean>;
+		userRoles: ({domainId, userId, user}: {domainId: string | RDatum <string>, userId: string | RDatum <string>, user: RDatum<GenericUser>}) => RDatum <UserRoles <GenericPermissionTargetEntityType>>;
 	}
 	export interface Indexes
 	{
@@ -18,12 +18,12 @@ declare module '@chris-talman/rethink-permission-system'
 		/** [ domainId, permission type, negated, user role ID, user role type, subject entity ID, subject entity type, deleted ] */
 		subject: string;
 	}
-	export interface Permissions <PermissionTargetEntityType extends string> extends Array<Permission <PermissionTargetEntityType>> {}
+	export interface Permissions <PermissionTargetEntityType extends string> extends Array <Permission <PermissionTargetEntityType>> {}
 	export interface Permission <PermissionTargetEntityType extends string>
 	{
-		id: string;
-		type: string;
-		domainId: string;
+		id: string | RDatum <string>;
+		type: string | RDatum <string>;
+		domainId: string | RDatum <string>;
 		/** The entity which is authorised to take an action. */
 		agent: PermissionTargetEntity <PermissionTargetEntityType>;
 		/** The entity on which the agent entity can take an action. */
@@ -40,7 +40,7 @@ declare module '@chris-talman/rethink-permission-system'
 	interface UserRoles <PermissionTargetEntityType extends string> extends Array<UserRole <PermissionTargetEntityType>> {}
 	interface UserRole <PermissionTargetEntityType extends string>
 	{
-		id: RDatum<string>;
+		id: RDatum <string>;
 		type: PermissionTargetEntityType;
 	}
 	export class PermissionSystem
@@ -54,8 +54,8 @@ declare module '@chris-talman/rethink-permission-system'
 		public readonly table: string;
 		public readonly indexes: Indexes;
 		public readonly queries: Queries <GenericUser, GenericTargetEntityType>;
-		public isUserAuthorised({domainId, userId, permissions}: {domainId: string, userId: string, permissions: IsUserAuthorised.PermissionParameters <GenericPermissionType, GenericSubjectTargetEntityType>}): Promise <boolean>;
-		public generateIsUserAuthorisedQuery <GenericPermissions extends IsUserAuthorised.PermissionParameters <GenericPermissionType, GenericSubjectTargetEntityType>> ({domainId, userId, permissions}: {domainId: string, userId: string, permissions: GenericPermissions | RDatum <GenericPermissions>}): RDatum <boolean>;
+		public isUserAuthorised({domainId, userId, permissions}: {domainId: string | RDatum <string>, userId: string | RDatum <string>, permissions: IsUserAuthorised.PermissionParameters <GenericPermissionType, GenericSubjectTargetEntityType>}): Promise <boolean>;
+		public generateIsUserAuthorisedQuery <GenericPermissions extends IsUserAuthorised.PermissionParameters <GenericPermissionType, GenericSubjectTargetEntityType>> ({domainId, userId, permissions}: {domainId: string | RDatum <string>, userId: string | RDatum <string>, permissions: GenericPermissions | RDatum <GenericPermissions>}): RDatum <boolean>;
 		constructor({table, indexes, queries}: {table: string, indexes: Indexes, queries: Queries <GenericUser, GenericTargetEntityType>});
 	}
 
@@ -75,7 +75,7 @@ declare module '@chris-talman/rethink-permission-system'
 		}
 		export interface RangePermissionParameterRange <GenericPermissionType extends string> extends BasePermissionParameter
 		{
-			types: Array<GenericPermissionType>;
+			types: Array <GenericPermissionType>;
 		}
 		export interface SubjectPermissionParameter <GenericPermissionType extends string, GenericSubjectTargetEntityType extends string>
 		{

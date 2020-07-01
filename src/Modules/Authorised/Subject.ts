@@ -17,7 +17,7 @@ export function generateUserAuthorisedBySubjectQuery <GenericPermissionType exte
 (
 	{domainId, userRoles, permission, subject, parameter, system}:
 	{
-		domainId: string,
+		domainId: string | RDatum <string>,
 		userRoles: RDatum <UserRoles <GenericTargetEntityType>>,
 		permission: RDatum <GenericPermissionType>,
 		subject: RDatum <GenericTargetEntity>,

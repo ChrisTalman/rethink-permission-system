@@ -71,7 +71,7 @@ export async function isUserAuthorised <GenericPermissionType extends string, Ge
 export function generateIsUserAuthorisedQuery <GenericPermissionType extends string, GenericSubjectTargetEntityType extends string, GenericPermissions extends PermissionParameters <GenericPermissionType, GenericSubjectTargetEntityType>>
 (
 	this: PermissionSystem <any, any, any, any>,
-	{domainId, userId, permissions}: {domainId: string, userId: string, permissions: GenericPermissions | RDatum <GenericPermissions>}
+	{domainId, userId, permissions}: {domainId: string | RDatum <string>, userId: string | RDatum <string>, permissions: GenericPermissions | RDatum <GenericPermissions>}
 )
 {
 	const query = generateQuery({domainId, userId, permissions, system: this});
@@ -80,7 +80,7 @@ export function generateIsUserAuthorisedQuery <GenericPermissionType extends str
 
 function generateQuery <GenericPermissionType extends string, GenericSubjectTargetEntityType extends string, GenericPermissions extends PermissionParameters <GenericPermissionType, GenericSubjectTargetEntityType>>
 (
-	{domainId, userId, permissions, system}: {domainId: string, userId: string, permissions: GenericPermissions | RDatum <GenericPermissions>, system: PermissionSystem <any, any, any, any>}
+	{domainId, userId, permissions, system}: {domainId: string | RDatum <string>, userId: string | RDatum <string>, permissions: GenericPermissions | RDatum <GenericPermissions>, system: PermissionSystem <any, any, any, any>}
 )
 {
 	const query = generateUserVariablesQuery({domainId, userId, system})

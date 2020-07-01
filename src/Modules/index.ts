@@ -7,10 +7,10 @@ import { isUserAuthorised, generateIsUserAuthorisedQuery } from './Authorised';
 import { RDatum } from 'rethinkdb-ts';
 export interface Queries <GenericUser extends any, GenericTargetEntityType extends string>
 {
-	user: ({domainId, userId}: {domainId: string, userId: string}) => RDatum<GenericUser>;
-	globalAuthorised?: ({domainId, userId, user}: {domainId: string, userId: string, user: RDatum<GenericUser>}) => RDatum <boolean>;
-	organisationAuthorised?: ({domainId, userId, user}: {domainId: string, userId: string, user: RDatum<GenericUser>}) => RDatum <boolean>;
-	userRoles: ({domainId, userId, user}: {domainId: string, userId: string, user: RDatum<GenericUser>}) => RDatum <UserRoles <GenericTargetEntityType>>;
+	user: ({domainId, userId}: {domainId: string | RDatum <string>, userId: string | RDatum <string>}) => RDatum<GenericUser>;
+	globalAuthorised?: ({domainId, userId, user}: {domainId: string | RDatum <string>, userId: string | RDatum <string>, user: RDatum<GenericUser>}) => RDatum <boolean>;
+	organisationAuthorised?: ({domainId, userId, user}: {domainId: string | RDatum <string>, userId: string | RDatum <string>, user: RDatum<GenericUser>}) => RDatum <boolean>;
+	userRoles: ({domainId, userId, user}: {domainId: string | RDatum <string>, userId: string | RDatum <string>, user: RDatum<GenericUser>}) => RDatum <UserRoles <GenericTargetEntityType>>;
 };
 interface Indexes
 {

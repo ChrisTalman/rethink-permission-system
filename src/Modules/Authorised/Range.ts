@@ -17,7 +17,7 @@ export function generateUserAuthorisedByRangeQuery <GenericPermissionTypes exten
 (
 	{domainId, userRoles, permissions, parameter, system}:
 	{
-		domainId: string,
+		domainId: string | RDatum <string>,
 		userRoles: RDatum <UserRoles <GenericTargetEntityType>>,
 		permissions: RDatum <GenericPermissionTypes>,
 		parameter: RDatum <RangePermissionParameter <any>>,
