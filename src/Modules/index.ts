@@ -41,7 +41,7 @@ export interface PermissionTargetEntity <PermissionTargetEntityType extends stri
 export interface UserRoles <PermissionTargetEntityType extends string> extends Array<UserRole <PermissionTargetEntityType>> {};
 interface UserRole <PermissionTargetEntityType extends string>
 {
-	id: RDatum<string>;
+	id: RDatum <string>;
 	type: PermissionTargetEntityType;
 };
 
@@ -57,8 +57,8 @@ export class PermissionSystem
 	public readonly table: string;
 	public readonly indexes: Indexes;
 	public readonly queries: Queries <GenericUser, GenericTargetEntityType>;
-	public isUserAuthorised = isUserAuthorised;
-	public generateIsUserAuthorisedQuery = generateIsUserAuthorisedQuery;
+	public readonly isUserAuthorised = isUserAuthorised;
+	public readonly generateIsUserAuthorisedQuery = generateIsUserAuthorisedQuery;
 	constructor({table, indexes, queries}: {table: string, indexes: Indexes, queries: Queries <GenericUser, GenericTargetEntityType>})
 	{
 		this.table = table;
