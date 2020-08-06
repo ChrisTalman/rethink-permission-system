@@ -12,7 +12,7 @@ export interface Queries <GenericUser extends any, GenericTargetEntityType exten
 	organisationAuthorised?: ({domainId, userId, user}: {domainId: string | RDatum <string>, userId: string | RDatum <string>, user: RDatum<GenericUser>}) => RDatum <boolean>;
 	userRoles: ({domainId, userId, user}: {domainId: string | RDatum <string>, userId: string | RDatum <string>, user: RDatum<GenericUser>}) => RDatum <UserRoles <GenericTargetEntityType>>;
 	/** For `subject` authorisations, evaluates multiple subjects based upon the input subject. */
-	subjectEntities?: (entity: RDatum <PermissionTargetEntity <GenericSubjectTargetEntityType>>) => RDatum <Array <PermissionTargetEntity <GenericSubjectTargetEntityType>>>;
+	subjectEntities?: ({entity}: {entity: RDatum <PermissionTargetEntity <GenericSubjectTargetEntityType>>}) => RDatum <Array <PermissionTargetEntity <GenericSubjectTargetEntityType>>>;
 };
 interface Indexes
 {

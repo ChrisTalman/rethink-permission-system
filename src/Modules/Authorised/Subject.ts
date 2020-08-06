@@ -94,7 +94,7 @@ function resolveSubjectEntities({subject, system}: {subject: RDatum <PermissionT
 				.queries
 				.subjectEntities
 				?
-					system.queries.subjectEntities(subject)
+					system.queries.subjectEntities({entity: subject})
 				:
 					[] as any
 		) as any as RDatum <Array <PermissionTargetEntity <any>>>;
