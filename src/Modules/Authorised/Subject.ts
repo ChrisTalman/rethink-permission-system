@@ -13,14 +13,14 @@ const NEGATED = true;
 const NOT_NEGATED = false;
 const NOT_DELETED = false;
 
-export function generateUserAuthorisedBySubjectQuery <GenericPermissionType extends string, GenericTargetEntityType extends string, GenericTargetEntity extends PermissionTargetEntity <any>>
+export function generateUserAuthorisedBySubjectQuery <GenericPermissionType extends string, GenericTargetEntityType extends string>
 (
 	{domainId, userRoles, permission, subject, parameter, system}:
 	{
 		domainId: string | RDatum <string>,
 		userRoles: RDatum <UserRoles <GenericTargetEntityType>>,
 		permission: RDatum <GenericPermissionType>,
-		subject: RDatum <GenericTargetEntity>,
+		subject: RDatum <PermissionTargetEntity <any>>,
 		parameter: RDatum <SubjectPermissionParameter <any, any>>,
 		system: PermissionSystem <any, any, any, any>
 	}
@@ -33,12 +33,16 @@ export function generateUserAuthorisedBySubjectQuery <GenericPermissionType exte
 				granted: userRoles
 					.concatMap
 					(
-						role => RethinkDB
-							.table<Permission <any>>(system.table)
-							.getAll
+						role => resolveSubjectEntities({subject, system})
+							.concatMap
 							(
-								[ domainId, permission, NOT_NEGATED, role('id'), role('type'), subject('id'), subject('type'), NOT_DELETED ],
-								{ index: system.indexes.subject }
+								subject => RethinkDB
+									.table<Permission <any>>(system.table)
+									.getAll
+									(
+										[ domainId, permission, NOT_NEGATED, role('id'), role('type'), subject('id'), subject('type'), NOT_DELETED ],
+										{ index: system.indexes.subject }
+									)
 							)
 					)
 					.count()
@@ -46,12 +50,16 @@ export function generateUserAuthorisedBySubjectQuery <GenericPermissionType exte
 				negated: userRoles
 					.concatMap
 					(
-						role => RethinkDB
-							.table<Permission <any>>(system.table)
-							.getAll
+						role => resolveSubjectEntities({subject, system})
+							.concatMap
 							(
-								[ domainId, permission, NEGATED, role('id'), role('type'), subject('id'), subject('type'), NOT_DELETED ],
-								{ index: system.indexes.subject }
+								subject => RethinkDB
+									.table<Permission <any>>(system.table)
+									.getAll
+									(
+										[ domainId, permission, NEGATED, role('id'), role('type'), subject('id'), subject('type'), NOT_DELETED ],
+										{ index: system.indexes.subject }
+									)
 							)
 					)
 					.count()
@@ -72,5 +80,23 @@ export function generateUserAuthorisedBySubjectQuery <GenericPermissionType exte
 				}
 			)
 		);
+	return query;
+};
+
+/** Resolves to an array consisting of the given `subject` and any other subjects returned by `subjectEntities()`, if provided. */
+function resolveSubjectEntities({subject, system}: {subject: RDatum <PermissionTargetEntity <any>>, system: PermissionSystem <any, any, any, any>})
+{
+	const query = RethinkDB
+		.union
+		(
+			[ subject ],
+			system
+				.queries
+				.subjectEntities
+				?
+					system.queries.subjectEntities(subject)
+				:
+					[] as any
+		) as any as RDatum <Array <PermissionTargetEntity <any>>>;
 	return query;
 };

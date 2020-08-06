@@ -4,12 +4,14 @@ declare module '@chris-talman/rethink-permission-system'
 	import { RDatum } from 'rethinkdb-ts';
 
 	// Class
-	export interface Queries <GenericUser extends any, GenericPermissionTargetEntityType extends string>
+	export interface Queries <GenericUser extends any, GenericPermissionTargetEntityType extends string, GenericSubjectTargetEntityType extends string>
 	{
 		user: ({domainId, userId}: {domainId: string | RDatum <string>, userId: string | RDatum <string>}) => RDatum<GenericUser>;
 		globalAuthorised?: ({domainId, userId, user}: {domainId: string | RDatum <string>, userId: string | RDatum <string>, user: RDatum<GenericUser>}) => RDatum <boolean>;
 		organisationAuthorised?: ({domainId, userId, user}: {domainId: string | RDatum <string>, userId: string | RDatum <string>, user: RDatum<GenericUser>}) => RDatum <boolean>;
 		userRoles: ({domainId, userId, user}: {domainId: string | RDatum <string>, userId: string | RDatum <string>, user: RDatum<GenericUser>}) => RDatum <UserRoles <GenericPermissionTargetEntityType>>;
+		/** For `subject` authorisations, evaluates multiple subjects based upon the input subject. */
+		subjectEntities?: (entity: RDatum <PermissionTargetEntity <GenericSubjectTargetEntityType>>) => RDatum <Array <PermissionTargetEntity <GenericSubjectTargetEntityType>>>;
 	}
 	export interface Indexes
 	{
@@ -53,10 +55,10 @@ declare module '@chris-talman/rethink-permission-system'
 	{
 		public readonly table: string;
 		public readonly indexes: Indexes;
-		public readonly queries: Queries <GenericUser, GenericTargetEntityType>;
+		public readonly queries: Queries <GenericUser, GenericTargetEntityType, GenericSubjectTargetEntityType>;
 		public isUserAuthorised({domainId, userId, permissions}: {domainId: string | RDatum <string>, userId: string | RDatum <string>, permissions: IsUserAuthorised.PermissionParameters <GenericPermissionType, GenericSubjectTargetEntityType>}): Promise <boolean>;
 		public generateIsUserAuthorisedQuery <GenericPermissions extends IsUserAuthorised.PermissionParameters <GenericPermissionType, GenericSubjectTargetEntityType>> ({domainId, userId, permissions}: {domainId: string | RDatum <string>, userId: string | RDatum <string>, permissions: GenericPermissions | RDatum <GenericPermissions>}): RDatum <boolean>;
-		constructor({table, indexes, queries}: {table: string, indexes: Indexes, queries: Queries <GenericUser, GenericTargetEntityType>});
+		constructor({table, indexes, queries}: {table: string, indexes: Indexes, queries: Queries <GenericUser, GenericTargetEntityType, GenericSubjectTargetEntityType>});
 	}
 
 	// Is User Authorised

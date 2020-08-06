@@ -5,12 +5,14 @@ import { isUserAuthorised, generateIsUserAuthorisedQuery } from './Authorised';
 
 // Types
 import { RDatum } from 'rethinkdb-ts';
-export interface Queries <GenericUser extends any, GenericTargetEntityType extends string>
+export interface Queries <GenericUser extends any, GenericTargetEntityType extends string, GenericSubjectTargetEntityType extends string>
 {
 	user: ({domainId, userId}: {domainId: string | RDatum <string>, userId: string | RDatum <string>}) => RDatum<GenericUser>;
 	globalAuthorised?: ({domainId, userId, user}: {domainId: string | RDatum <string>, userId: string | RDatum <string>, user: RDatum<GenericUser>}) => RDatum <boolean>;
 	organisationAuthorised?: ({domainId, userId, user}: {domainId: string | RDatum <string>, userId: string | RDatum <string>, user: RDatum<GenericUser>}) => RDatum <boolean>;
 	userRoles: ({domainId, userId, user}: {domainId: string | RDatum <string>, userId: string | RDatum <string>, user: RDatum<GenericUser>}) => RDatum <UserRoles <GenericTargetEntityType>>;
+	/** For `subject` authorisations, evaluates multiple subjects based upon the input subject. */
+	subjectEntities?: (entity: RDatum <PermissionTargetEntity <GenericSubjectTargetEntityType>>) => RDatum <Array <PermissionTargetEntity <GenericSubjectTargetEntityType>>>;
 };
 interface Indexes
 {
@@ -56,10 +58,10 @@ export class PermissionSystem
 {
 	public readonly table: string;
 	public readonly indexes: Indexes;
-	public readonly queries: Queries <GenericUser, GenericTargetEntityType>;
+	public readonly queries: Queries <GenericUser, GenericTargetEntityType, GenericSubjectTargetEntityType>;
 	public readonly isUserAuthorised = isUserAuthorised;
 	public readonly generateIsUserAuthorisedQuery = generateIsUserAuthorisedQuery;
-	constructor({table, indexes, queries}: {table: string, indexes: Indexes, queries: Queries <GenericUser, GenericTargetEntityType>})
+	constructor({table, indexes, queries}: {table: string, indexes: Indexes, queries: Queries <GenericUser, GenericTargetEntityType, GenericSubjectTargetEntityType>})
 	{
 		this.table = table;
 		this.indexes = indexes;
