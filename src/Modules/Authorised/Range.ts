@@ -9,9 +9,12 @@ import { PermissionSystem, Permission, UserRoles } from 'src/Modules';
 import { RangePermissionParameter, PermissionParameterEvaluation } from './';
 
 // Constants
-const NEGATED = true;
-const NOT_NEGATED = false;
-const NOT_DELETED = false;
+import
+{
+	NEGATED,
+	NOT_NEGATED,
+	NOT_DELETED
+} from 'src/Modules/Constants';
 
 export function generateUserAuthorisedByRangeQuery <GenericPermissionTypes extends Array<string>, GenericTargetEntityType extends string>
 (

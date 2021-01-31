@@ -9,9 +9,13 @@ import { PermissionSystem, Permission, PermissionTargetEntity, UserRoles } from 
 import { SubjectPermissionParameter, PermissionParameterEvaluation } from './';
 
 // Constants
-const NEGATED = true;
-const NOT_NEGATED = false;
-const NOT_DELETED = false;
+import
+{
+	SPECIAL_ID_ALL,
+	NEGATED,
+	NOT_NEGATED,
+	NOT_DELETED
+} from 'src/Modules/Constants';
 
 export function generateUserAuthorisedBySubjectQuery <GenericPermissionType extends string, GenericTargetEntityType extends string>
 (
@@ -37,11 +41,22 @@ export function generateUserAuthorisedBySubjectQuery <GenericPermissionType exte
 							.concatMap
 							(
 								subject => RethinkDB
-									.table<Permission <any>>(system.table)
-									.getAll
+									.union
 									(
-										[ domainId, permission, NOT_NEGATED, role('id'), role('type'), subject('id'), subject('type'), NOT_DELETED ],
-										{ index: system.indexes.subject }
+										RethinkDB
+											.table<Permission <any>>(system.table)
+											.getAll
+											(
+												[ domainId, permission, NOT_NEGATED, role('id'), role('type'), SPECIAL_ID_ALL, subject('type'), NOT_DELETED ],
+												{ index: system.indexes.subject }
+											),
+										RethinkDB
+											.table<Permission <any>>(system.table)
+											.getAll
+											(
+												[ domainId, permission, NOT_NEGATED, role('id'), role('type'), subject('id'), subject('type'), NOT_DELETED ],
+												{ index: system.indexes.subject }
+											)
 									)
 							)
 					)
@@ -54,11 +69,22 @@ export function generateUserAuthorisedBySubjectQuery <GenericPermissionType exte
 							.concatMap
 							(
 								subject => RethinkDB
-									.table<Permission <any>>(system.table)
-									.getAll
+									.union
 									(
-										[ domainId, permission, NEGATED, role('id'), role('type'), subject('id'), subject('type'), NOT_DELETED ],
-										{ index: system.indexes.subject }
+										RethinkDB
+											.table<Permission <any>>(system.table)
+											.getAll
+											(
+												[ domainId, permission, NEGATED, role('id'), role('type'), SPECIAL_ID_ALL, subject('type'), NOT_DELETED ],
+												{ index: system.indexes.subject }
+											),
+										RethinkDB
+											.table<Permission <any>>(system.table)
+											.getAll
+											(
+												[ domainId, permission, NEGATED, role('id'), role('type'), subject('id'), subject('type'), NOT_DELETED ],
+												{ index: system.indexes.subject }
+											)
 									)
 							)
 					)

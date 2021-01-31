@@ -36,6 +36,10 @@ declare module '@chris-talman/rethink-permission-system'
 	}
 	export interface PermissionTargetEntity <PermissionTargetEntityType extends string>
 	{
+		/**
+			This can be a special value instead of an actual ID.
+			Current special values: `@all`.
+		*/
 		id: string;
 		type: PermissionTargetEntityType;
 	}
