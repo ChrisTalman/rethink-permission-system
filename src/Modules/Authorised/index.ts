@@ -14,7 +14,7 @@ import { generateUserAuthorisedBySubjectQuery } from './Subject';
 import { RDatum } from 'rethinkdb-ts';
 import { PermissionTargetEntity } from 'src/Modules';
 import { UserVariables } from 'src/Modules/UserVariables';
-interface PermissionParameters <GenericPermissionType extends string, GenericSubjectTargetEntityType extends string> extends Array<PermissionParameter <GenericPermissionType, GenericSubjectTargetEntityType>> {};
+export interface PermissionParameters <GenericPermissionType extends string, GenericSubjectTargetEntityType extends string> extends Array<PermissionParameter <GenericPermissionType, GenericSubjectTargetEntityType>> {};
 type PermissionParameter <GenericPermissionType extends string, GenericSubjectTargetEntityType extends string> = RangePermissionParameter <GenericPermissionType> | SubjectPermissionParameter <GenericPermissionType, GenericSubjectTargetEntityType>;
 interface BasePermissionParameter
 {
@@ -64,7 +64,12 @@ export async function isUserAuthorised <GenericPermissionType extends string, Ge
 )
 {
 	const query = generateQuery({domainId, userId, permissions, system: this});
-	const authorised = await rethinkRun({query, options: {throwRuntime: false}}) as boolean;
+	let authorised = await rethinkRun({query, options: {throwRuntime: false}}) as boolean;
+	if (!authorised && this.globalPermissions)
+	{
+		const query = generateQuery({domainId, userId, permissions: this.globalPermissions, system: this});
+		authorised = await rethinkRun({query, options: {throwRuntime: false}}) as boolean;
+	};
 	return authorised;
 };
 

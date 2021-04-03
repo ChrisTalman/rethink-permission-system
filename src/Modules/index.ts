@@ -5,6 +5,7 @@ import { isUserAuthorised, generateIsUserAuthorisedQuery } from './Authorised';
 
 // Types
 import { RDatum } from 'rethinkdb-ts';
+import { PermissionParameters } from './Authorised';
 export interface Queries <GenericUser extends any, GenericTargetEntityType extends string, GenericSubjectTargetEntityType extends string>
 {
 	user: ({domainId, userId}: {domainId: string | RDatum <string>, userId: string | RDatum <string>}) => RDatum<GenericUser>;
@@ -61,10 +62,12 @@ export class PermissionSystem
 	public readonly queries: Queries <GenericUser, GenericTargetEntityType, GenericSubjectTargetEntityType>;
 	public readonly isUserAuthorised = isUserAuthorised;
 	public readonly generateIsUserAuthorisedQuery = generateIsUserAuthorisedQuery;
-	constructor({table, indexes, queries}: {table: string, indexes: Indexes, queries: Queries <GenericUser, GenericTargetEntityType, GenericSubjectTargetEntityType>})
+	public readonly globalPermissions?: PermissionParameters <GenericPermissionType, GenericSubjectTargetEntityType>;
+	constructor({table, indexes, queries, globalPermissions}: {table: string, indexes: Indexes, queries: Queries <GenericUser, GenericTargetEntityType, GenericSubjectTargetEntityType>, globalPermissions: PermissionParameters <GenericPermissionType, GenericSubjectTargetEntityType>})
 	{
 		this.table = table;
 		this.indexes = indexes;
 		this.queries = queries;
+		if (globalPermissions) this.globalPermissions = globalPermissions;
 	};
 };
