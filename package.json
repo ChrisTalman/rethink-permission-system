@@ -1,6 +1,6 @@
 {
 	"name": "@chris-talman/rethink-permission-system",
-	"version": "5.1.0",
+	"version": "5.2.0",
 	"dependencies": {
 		"@chris-talman/rethink-utilities": "3.2.2",
 		"rethinkdb-ts": ">=2.4.2"
@@ -10,6 +10,7 @@
 		"build": "./node_modules/.bin/webpack"
 	},
 	"devDependencies": {
+		"@chris-talman/types-helpers": "2.5.0",
 		"@types/node": "14.0.5",
 		"ts-loader": "7.0.5",
 		"typescript": "3.9.3",

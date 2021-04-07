@@ -60,9 +60,10 @@ export interface AggregatePermissionEvaluation
 export async function isUserAuthorised <GenericPermissionType extends string, GenericSubjectTargetEntityType extends string>
 (
 	this: PermissionSystem <any, any, any, any>,
-	{domainId, userId, permissions}: {domainId: string, userId: string, permissions: PermissionParameters <GenericPermissionType, GenericSubjectTargetEntityType>}
+	{domainId, userId, permissions: rawPermissions}: {domainId: string, userId: string, permissions: PermissionParameters <GenericPermissionType, GenericSubjectTargetEntityType>}
 )
 {
+	const permissions = generatePermissionsWithGroups({rawPermissions, system: this});
 	const query = generateQuery({domainId, userId, permissions, system: this});
 	let authorised = await rethinkRun({query, options: {throwRuntime: false}}) as boolean;
 	if (!authorised && this.globalPermissions)
@@ -71,6 +72,52 @@ export async function isUserAuthorised <GenericPermissionType extends string, Ge
 		authorised = await rethinkRun({query, options: {throwRuntime: false}}) as boolean;
 	};
 	return authorised;
+};
+
+function generatePermissionsWithGroups <GenericPermissionType extends string, GenericSubjectTargetEntityType extends string> ({rawPermissions, system}: {rawPermissions: PermissionParameters <GenericPermissionType, GenericSubjectTargetEntityType>, system: PermissionSystem <any, any, any, any>})
+{
+	const permissions: typeof rawPermissions = [];
+	for (let rawPermission of rawPermissions)
+	{
+		permissions.push(rawPermission);
+		const groupPermissionTypes = new Set <GenericPermissionType> ();
+		if (system.groupPermissions)
+		{
+			for (let [ groupPermissionType, groupPermissionMemberTypes ] of Object.entries(system.groupPermissions))
+			{
+				for (let groupPermissionMemberType of groupPermissionMemberTypes as Array <GenericPermissionType>)
+				{
+					if
+					(
+						'range' in rawPermission && rawPermission.range.types.includes(groupPermissionMemberType) ||
+						'subject' in rawPermission && rawPermission.subject.type === groupPermissionMemberType
+					)
+					{
+						groupPermissionTypes.add(groupPermissionType as GenericPermissionType);
+					};
+				};
+			};
+		};
+		for (let groupPermissionType of groupPermissionTypes)
+		{
+			if ('range' in rawPermission)
+			{
+				const permission = Object.assign({}, rawPermission);
+				permission.range.types = [... rawPermission.range.types, groupPermissionType];
+			}
+			else if ('subject' in rawPermission)
+			{
+				const permission = Object.assign({}, rawPermission);
+				permission.subject = Object.assign({}, permission.subject, {type: groupPermissionType});
+				permissions.push(permission);
+			}
+			else
+			{
+				throw new Error(`Unexpected permission:\n${JSON.stringify(rawPermission)}`);
+			};
+		};
+	};
+	return permissions;
 };
 
 export function generateIsUserAuthorisedQuery <GenericPermissionType extends string, GenericSubjectTargetEntityType extends string, GenericPermissions extends PermissionParameters <GenericPermissionType, GenericSubjectTargetEntityType>>

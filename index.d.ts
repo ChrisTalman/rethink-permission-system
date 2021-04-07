@@ -1,6 +1,7 @@
 declare module '@chris-talman/rethink-permission-system'
 {
 	// Types
+	import { OmitLiteral } from '@chris-talman/types-helpers';
 	import { RDatum } from 'rethinkdb-ts';
 
 	// Class
@@ -49,6 +50,10 @@ declare module '@chris-talman/rethink-permission-system'
 		id: RDatum <string>;
 		type: PermissionTargetEntityType;
 	}
+	export type GroupPermissions <GenericPermissionType extends string> =
+	{
+		[Type in GenericPermissionType]?: Array <OmitLiteral <GenericPermissionType, Type>>;
+	}
 	export class PermissionSystem
 	<
 		GenericUser extends any,
@@ -61,9 +66,10 @@ declare module '@chris-talman/rethink-permission-system'
 		public readonly indexes: Indexes;
 		public readonly queries: Queries <GenericUser, GenericTargetEntityType, GenericSubjectTargetEntityType>;
 		public readonly globalPermissions?: IsUserAuthorised.PermissionParameters <GenericPermissionType, GenericSubjectTargetEntityType>;
+		public readonly groupPermissions?: GroupPermissions <GenericPermissionType>;
 		public isUserAuthorised({domainId, userId, permissions}: {domainId: string | RDatum <string>, userId: string | RDatum <string>, permissions: IsUserAuthorised.PermissionParameters <GenericPermissionType, GenericSubjectTargetEntityType>}): Promise <boolean>;
 		public generateIsUserAuthorisedQuery <GenericPermissions extends IsUserAuthorised.PermissionParameters <GenericPermissionType, GenericSubjectTargetEntityType>> ({domainId, userId, permissions}: {domainId: string | RDatum <string>, userId: string | RDatum <string>, permissions: GenericPermissions | RDatum <GenericPermissions>}): RDatum <boolean>;
-		constructor({table, indexes, queries, globalPermissions}: {table: string, indexes: Indexes, queries: Queries <GenericUser, GenericTargetEntityType, GenericSubjectTargetEntityType>, globalPermissions?: IsUserAuthorised.PermissionParameters <GenericPermissionType, GenericSubjectTargetEntityType>});
+		constructor({table, indexes, queries, globalPermissions, groupPermissions}: {table: string, indexes: Indexes, queries: Queries <GenericUser, GenericTargetEntityType, GenericSubjectTargetEntityType>, globalPermissions?: IsUserAuthorised.PermissionParameters <GenericPermissionType, GenericSubjectTargetEntityType>, groupPermissions?: GroupPermissions <GenericPermissionType>});
 	}
 
 	// Is User Authorised

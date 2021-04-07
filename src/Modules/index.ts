@@ -5,6 +5,7 @@ import { isUserAuthorised, generateIsUserAuthorisedQuery } from './Authorised';
 
 // Types
 import { RDatum } from 'rethinkdb-ts';
+import { OmitLiteral } from '@chris-talman/types-helpers';
 import { PermissionParameters } from './Authorised';
 export interface Queries <GenericUser extends any, GenericTargetEntityType extends string, GenericSubjectTargetEntityType extends string>
 {
@@ -47,7 +48,10 @@ interface UserRole <PermissionTargetEntityType extends string>
 	id: RDatum <string>;
 	type: PermissionTargetEntityType;
 };
-
+export type GroupPermissions <GenericPermissionType extends string> =
+{
+	[Type in GenericPermissionType]?: Array <OmitLiteral <GenericPermissionType, Type>>;
+};
 
 export class PermissionSystem
 <
@@ -63,11 +67,13 @@ export class PermissionSystem
 	public readonly isUserAuthorised = isUserAuthorised;
 	public readonly generateIsUserAuthorisedQuery = generateIsUserAuthorisedQuery;
 	public readonly globalPermissions?: PermissionParameters <GenericPermissionType, GenericSubjectTargetEntityType>;
-	constructor({table, indexes, queries, globalPermissions}: {table: string, indexes: Indexes, queries: Queries <GenericUser, GenericTargetEntityType, GenericSubjectTargetEntityType>, globalPermissions: PermissionParameters <GenericPermissionType, GenericSubjectTargetEntityType>})
+	public readonly groupPermissions?: GroupPermissions <GenericPermissionType>;
+	constructor({table, indexes, queries, globalPermissions, groupPermissions}: {table: string, indexes: Indexes, queries: Queries <GenericUser, GenericTargetEntityType, GenericSubjectTargetEntityType>, globalPermissions?: PermissionParameters <GenericPermissionType, GenericSubjectTargetEntityType>, groupPermissions?: GroupPermissions <GenericPermissionType>})
 	{
 		this.table = table;
 		this.indexes = indexes;
 		this.queries = queries;
 		if (globalPermissions) this.globalPermissions = globalPermissions;
+		if (groupPermissions) this.groupPermissions = groupPermissions;
 	};
 };
