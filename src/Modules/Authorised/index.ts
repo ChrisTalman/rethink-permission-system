@@ -2,6 +2,7 @@
 
 // External Modules
 import { r as RethinkDB } from 'rethinkdb-ts';
+import { nanoid } from 'nanoid/async';
 import { run as rethinkRun } from '@chris-talman/rethink-utilities';
 
 // Internal Modules
@@ -18,8 +19,11 @@ export interface PermissionParameters <GenericPermissionType extends string, Gen
 type PermissionParameter <GenericPermissionType extends string, GenericSubjectTargetEntityType extends string> = RangePermissionParameter <GenericPermissionType> | SubjectPermissionParameter <GenericPermissionType, GenericSubjectTargetEntityType>;
 interface BasePermissionParameter
 {
-	/** At least one permission must be authorised, but not necessarily this one. */
-	some?: boolean;
+	/**
+		At least one permission must be authorised, but not necessarily this one.
+		Can be grouped by a `string`, requiring one permission with that `string` to be authorised.
+	*/
+	some?: boolean | string;
 };
 export interface RangePermissionParameter <GenericPermissionType extends string>
 {
@@ -47,8 +51,10 @@ export interface PermissionParameterEvaluation
 };
 export interface AggregatePermissionEvaluation
 {
+	evaluations: Array <PermissionParameterEvaluation>;
 	/** All required permissions are authorised. */
 	authorisedRequired: boolean;
+	authorisedGroups: { [type: string]: [boolean]; };
 	/** At least one permission is authorised. */
 	authorisedSome: boolean;
 	/** At least one permission is authorised, and if any are required, all of those are authorised. */
@@ -63,7 +69,7 @@ export async function isUserAuthorised <GenericPermissionType extends string, Ge
 	{domainId, userId, permissions: rawPermissions}: {domainId: string, userId: string, permissions: PermissionParameters <GenericPermissionType, GenericSubjectTargetEntityType>}
 )
 {
-	const permissions = generatePermissionsWithGroups({rawPermissions, system: this});
+	const permissions = await generatePermissionsWithGroups({rawPermissions, system: this});
 	const query = generateQuery({domainId, userId, permissions, system: this});
 	let authorised = await rethinkRun({query, options: {throwRuntime: false}}) as boolean;
 	if (!authorised && this.globalPermissions)
@@ -74,8 +80,9 @@ export async function isUserAuthorised <GenericPermissionType extends string, Ge
 	return authorised;
 };
 
-function generatePermissionsWithGroups <GenericPermissionType extends string, GenericSubjectTargetEntityType extends string> ({rawPermissions, system}: {rawPermissions: PermissionParameters <GenericPermissionType, GenericSubjectTargetEntityType>, system: PermissionSystem <any, any, any, any>})
+async function generatePermissionsWithGroups <GenericPermissionType extends string, GenericSubjectTargetEntityType extends string> ({rawPermissions, system}: {rawPermissions: PermissionParameters <GenericPermissionType, GenericSubjectTargetEntityType>, system: PermissionSystem <any, any, any, any>})
 {
+	const someGroup = await nanoid(10);
 	const permissions: typeof rawPermissions = [];
 	for (let rawPermission of rawPermissions)
 	{
@@ -102,18 +109,18 @@ function generatePermissionsWithGroups <GenericPermissionType extends string, Ge
 		{
 			if ('range' in rawPermission)
 			{
-				// To do: Evaluate whether the use of `some` is safe: could it cause unexpected behaviour with multiple permission parameters?
-				rawPermission.range.some = true;
+				const some = rawPermission.range.some === true ? true : someGroup;
+				rawPermission.range.some = some;
 				const permission = Object.assign({}, rawPermission);
-				permission.range.some = true;
+				permission.range.some = some;
 				permission.range.types = [... rawPermission.range.types, groupPermissionType];
 			}
 			else if ('subject' in rawPermission)
 			{
-				// To do: Evaluate whether the use of `some` is safe: could it cause unexpected behaviour with multiple permission parameters?
-				rawPermission.subject.some = true;
+				const some = rawPermission.subject.some === true ? true : someGroup;
+				rawPermission.subject.some = some;
 				const permission = Object.assign({}, rawPermission);
-				permission.subject.some = true;
+				permission.subject.some = some;
 				permission.subject = Object.assign({}, permission.subject, {type: groupPermissionType});
 				permissions.push(permission);
 			}
@@ -212,15 +219,84 @@ function generateQuery <GenericPermissionType extends string, GenericSubjectTarg
 															)
 															.count()
 															.eq(0),
-														authorisedSome: evaluations
-															.filter(evaluation => evaluation('authorised'))
-															.count()
-															.gt(0)
+														authorisedGroups: evaluations
+															.fold
+															(
+																{},
+																(accumulator, evaluation) => accumulator
+																	.merge
+																	(
+																		RethinkDB
+																			.branch
+																			(
+																				RethinkDB.and
+																				(
+																					evaluation('parameter').hasFields('range'),
+																					evaluation('parameter')('range')('some').typeOf().eq('STRING')
+																				),
+																				evaluation('parameter')('range')('some'),
+																				RethinkDB.and
+																				(
+																					evaluation('parameter').hasFields('subject'),
+																					evaluation('parameter')('subject')('some').typeOf().eq('STRING')
+																				),
+																				evaluation('parameter')('subject')('some'),
+																				null
+																			)
+																			.do
+																			(
+																				(some: RDatum <string | null>) => RethinkDB
+																					.branch
+																					(
+																						some.typeOf().eq('STRING'),
+																						RethinkDB
+																							.expr
+																							(
+																								[[
+																									some,
+																									accumulator(some as any).default([]).append(evaluation('authorised'))
+																								]]
+																							)
+																							.coerceTo('object'),
+																						{}
+																					)
+																			)
+																	)
+															),
+														evaluations
 													}
 												)
 												.merge
 												(
-													(evaluation: RDatum <Omit <AggregatePermissionEvaluation, 'authorised' | 'negated'>>) =>
+													(evaluation: RDatum <Omit <AggregatePermissionEvaluation, 'authorised' | 'negated' | 'authorisedSome'>>) =>
+													(
+														{
+															authorisedSome: RethinkDB
+																.and
+																(
+																	evaluation('evaluations')
+																		.filter(evaluation => evaluation('authorised'))
+																		.count()
+																		.gt(0),
+																	evaluation('authorisedGroups')
+																		.keys()
+																		.filter
+																		(
+																			key => evaluation('authorisedGroups')
+																				(key)
+																				.filter(evaluation => evaluation)
+																				.count()
+																				.eq(0)
+																		)
+																		.count()
+																		.eq(0)
+																)
+														}
+													)
+												)
+												.merge
+												(
+													(evaluation: RDatum <Omit <AggregatePermissionEvaluation, 'authorised' | 'negated' | 'authorisedGroups'>>) =>
 													(
 														{
 															authorised: RethinkDB.and

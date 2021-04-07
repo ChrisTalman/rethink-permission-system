@@ -1,9 +1,10 @@
 {
 	"name": "@chris-talman/rethink-permission-system",
-	"version": "5.2.3",
+	"version": "5.3.0",
 	"dependencies": {
 		"@chris-talman/rethink-utilities": "3.2.2",
 		"@chris-talman/types-helpers": "2.5.0",
+		"nanoid": "3.1.22",
 		"rethinkdb-ts": ">=2.4.2"
 	},
 	"scripts": {

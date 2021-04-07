@@ -79,8 +79,11 @@ declare module '@chris-talman/rethink-permission-system'
 		export type PermissionParameter <GenericPermissionType extends string, GenericSubjectTargetEntityType extends string> = RangePermissionParameter <GenericPermissionType> | SubjectPermissionParameter <GenericPermissionType, GenericSubjectTargetEntityType>;
 		interface BasePermissionParameter
 		{
-			/** At least one permission must be authorised, but not necessarily this one. */
-			some?: boolean;
+			/**
+				At least one permission must be authorised, but not necessarily this one.
+				Can be grouped by a `string`, requiring one permission with that `string` to be authorised.
+			*/
+			some?: boolean | string;
 		}
 		export interface RangePermissionParameter <GenericPermissionType extends string>
 		{
