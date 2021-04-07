@@ -102,12 +102,18 @@ function generatePermissionsWithGroups <GenericPermissionType extends string, Ge
 		{
 			if ('range' in rawPermission)
 			{
+				// To do: Evaluate whether the use of `some` is safe: could it cause unexpected behaviour with multiple permission parameters?
+				rawPermission.range.some = true;
 				const permission = Object.assign({}, rawPermission);
+				permission.range.some = true;
 				permission.range.types = [... rawPermission.range.types, groupPermissionType];
 			}
 			else if ('subject' in rawPermission)
 			{
+				// To do: Evaluate whether the use of `some` is safe: could it cause unexpected behaviour with multiple permission parameters?
+				rawPermission.subject.some = true;
 				const permission = Object.assign({}, rawPermission);
+				permission.subject.some = true;
 				permission.subject = Object.assign({}, permission.subject, {type: groupPermissionType});
 				permissions.push(permission);
 			}
