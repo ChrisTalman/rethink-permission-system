@@ -231,13 +231,13 @@ function generateQuery <GenericPermissionType extends string, GenericSubjectTarg
 																			(
 																				RethinkDB.and
 																				(
-																					evaluation('parameter').hasFields('range'),
+																					evaluation('parameter').hasFields({range: 'some'} as any),
 																					evaluation('parameter')('range')('some').typeOf().eq('STRING')
 																				),
 																				evaluation('parameter')('range')('some'),
 																				RethinkDB.and
 																				(
-																					evaluation('parameter').hasFields('subject'),
+																					evaluation('parameter').hasFields({subject: 'some'} as any),
 																					evaluation('parameter')('subject')('some').typeOf().eq('STRING')
 																				),
 																				evaluation('parameter')('subject')('some'),
