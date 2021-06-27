@@ -2,6 +2,7 @@
 
 // External Modules
 import { r as RethinkDB } from 'rethinkdb-ts';
+import { nanoid as nanoidSync } from 'nanoid';
 import { nanoid } from 'nanoid/async';
 import { run as rethinkRun } from '@chris-talman/rethink-utilities';
 
@@ -69,7 +70,7 @@ export async function isUserAuthorised <GenericPermissionType extends string, Ge
 	{domainId, userId, permissions: rawPermissions}: {domainId: string, userId: string, permissions: PermissionParameters <GenericPermissionType, GenericSubjectTargetEntityType>}
 )
 {
-	const permissions = await generatePermissionsWithGroups({rawPermissions, system: this});
+	const permissions = await generatePermissionsWithGroupsAsync({rawPermissions, system: this});
 	const query = generateQuery({domainId, userId, permissions, system: this});
 	let authorised = await rethinkRun({query, options: {throwRuntime: false}}) as boolean;
 	if (!authorised && this.globalPermissions)
@@ -80,32 +81,38 @@ export async function isUserAuthorised <GenericPermissionType extends string, Ge
 	return authorised;
 };
 
-export async function generateIsUserAuthorisedQuery <GenericPermissionType extends string, GenericSubjectTargetEntityType extends string, GenericPermissions extends PermissionParameters <GenericPermissionType, GenericSubjectTargetEntityType>>
+export function generateIsUserAuthorisedQuery <GenericPermissionType extends string, GenericSubjectTargetEntityType extends string, GenericPermissions extends PermissionParameters <GenericPermissionType, GenericSubjectTargetEntityType>>
 (
 	this: PermissionSystem <any, any, any, any>,
 	{domainId, userId, permissions: rawPermissions}: {domainId: string | RDatum <string>, userId: string | RDatum <string>, permissions: GenericPermissions}
 )
 {
-	const permissions = await generatePermissionsWithGroups({rawPermissions, system: this});
-	const rawQuery = RethinkDB
+	const permissions = generatePermissionsWithGroupsSync({rawPermissions, system: this});
+	const query = RethinkDB
 		.or
 		(
 			generateQuery({domainId, userId, permissions, system: this}),
 			this.globalPermissions ? generateQuery({domainId, userId, permissions: this.globalPermissions, system: this}) : false
 		);
-	const query = new Proxy
-	(
-		rawQuery as Omit <RDatum <boolean>, 'then'>,
-		{
-			get: (target, key) => key === 'then' ? undefined : target[key]
-		}
-	);
 	return query;
 };
 
-async function generatePermissionsWithGroups <GenericPermissionType extends string, GenericSubjectTargetEntityType extends string> ({rawPermissions, system}: {rawPermissions: PermissionParameters <GenericPermissionType, GenericSubjectTargetEntityType>, system: PermissionSystem <any, any, any, any>})
+async function generatePermissionsWithGroupsAsync <GenericPermissionType extends string, GenericSubjectTargetEntityType extends string> ({rawPermissions, system}: {rawPermissions: PermissionParameters <GenericPermissionType, GenericSubjectTargetEntityType>, system: PermissionSystem <any, any, any, any>})
 {
 	const someGroup = await nanoid(10);
+	const permissions = generatePermissionsWithGroups({someGroup, rawPermissions, system});
+	return permissions;
+};
+
+function generatePermissionsWithGroupsSync <GenericPermissionType extends string, GenericSubjectTargetEntityType extends string> ({rawPermissions, system}: {rawPermissions: PermissionParameters <GenericPermissionType, GenericSubjectTargetEntityType>, system: PermissionSystem <any, any, any, any>})
+{
+	const someGroup = nanoidSync(10);
+	const permissions = generatePermissionsWithGroups({someGroup, rawPermissions, system});
+	return permissions;
+};
+
+function generatePermissionsWithGroups <GenericPermissionType extends string, GenericSubjectTargetEntityType extends string> ({someGroup, rawPermissions, system}: {someGroup: string, rawPermissions: PermissionParameters <GenericPermissionType, GenericSubjectTargetEntityType>, system: PermissionSystem <any, any, any, any>})
+{
 	const permissions: typeof rawPermissions = [];
 	for (let rawPermission of rawPermissions)
 	{
