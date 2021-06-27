@@ -87,14 +87,15 @@ export async function generateIsUserAuthorisedQuery <GenericPermissionType exten
 )
 {
 	const permissions = await generatePermissionsWithGroups({rawPermissions, system: this});
+	const rawQuery = RethinkDB
+		.or
+		(
+			generateQuery({domainId, userId, permissions, system: this}),
+			this.globalPermissions ? generateQuery({domainId, userId, permissions: this.globalPermissions, system: this}) : false
+		);
 	const query = new Proxy
 	(
-		RethinkDB
-			.or
-			(
-				generateQuery({domainId, userId, permissions, system: this}),
-				this.globalPermissions ? generateQuery({domainId, userId, permissions: this.globalPermissions, system: this}) : false
-			) as Omit <RDatum <boolean>, 'then'>,
+		rawQuery as Omit <RDatum <boolean>, 'then'>,
 		{
 			get: (target, key) => key === 'then' ? undefined : target[key]
 		}
