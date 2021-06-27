@@ -80,6 +80,28 @@ export async function isUserAuthorised <GenericPermissionType extends string, Ge
 	return authorised;
 };
 
+export async function generateIsUserAuthorisedQuery <GenericPermissionType extends string, GenericSubjectTargetEntityType extends string, GenericPermissions extends PermissionParameters <GenericPermissionType, GenericSubjectTargetEntityType>>
+(
+	this: PermissionSystem <any, any, any, any>,
+	{domainId, userId, permissions: rawPermissions}: {domainId: string | RDatum <string>, userId: string | RDatum <string>, permissions: GenericPermissions}
+)
+{
+	const permissions = await generatePermissionsWithGroups({rawPermissions, system: this});
+	const query = new Proxy
+	(
+		RethinkDB
+			.or
+			(
+				generateQuery({domainId, userId, permissions, system: this}),
+				this.globalPermissions ? generateQuery({domainId, userId, permissions: this.globalPermissions, system: this}) : false
+			) as Omit <RDatum <boolean>, 'then'>,
+		{
+			get: (target, key) => key === 'then' ? undefined : target[key]
+		}
+	);
+	return query;
+};
+
 async function generatePermissionsWithGroups <GenericPermissionType extends string, GenericSubjectTargetEntityType extends string> ({rawPermissions, system}: {rawPermissions: PermissionParameters <GenericPermissionType, GenericSubjectTargetEntityType>, system: PermissionSystem <any, any, any, any>})
 {
 	const someGroup = await nanoid(10);
@@ -131,16 +153,6 @@ async function generatePermissionsWithGroups <GenericPermissionType extends stri
 		};
 	};
 	return permissions;
-};
-
-export function generateIsUserAuthorisedQuery <GenericPermissionType extends string, GenericSubjectTargetEntityType extends string, GenericPermissions extends PermissionParameters <GenericPermissionType, GenericSubjectTargetEntityType>>
-(
-	this: PermissionSystem <any, any, any, any>,
-	{domainId, userId, permissions}: {domainId: string | RDatum <string>, userId: string | RDatum <string>, permissions: GenericPermissions | RDatum <GenericPermissions>}
-)
-{
-	const query = generateQuery({domainId, userId, permissions, system: this});
-	return query;
 };
 
 function generateQuery <GenericPermissionType extends string, GenericSubjectTargetEntityType extends string, GenericPermissions extends PermissionParameters <GenericPermissionType, GenericSubjectTargetEntityType>>
