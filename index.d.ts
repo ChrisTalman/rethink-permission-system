@@ -75,7 +75,7 @@ declare module '@chris-talman/rethink-permission-system'
 		public readonly groupPermissions?: GroupPermissions <GenericPermissionType>;
 		public isUserAuthorised({domainId, userId, permissions}: {domainId: string | RDatum <string>, userId: string | RDatum <string>, permissions: IsUserAuthorised.PermissionParameters <GenericPermissionType, GenericSubjectTargetEntityType>}): Promise <boolean>;
 		public generateIsUserAuthorisedQuery <GenericPermissions extends IsUserAuthorised.PermissionParameters <GenericPermissionType, GenericSubjectTargetEntityType>> ({domainId, userId, permissions}: {domainId: string | RDatum <string>, userId: string | RDatum <string>, permissions: GenericPermissions}): RDatum <boolean>;
-		public getAuthorisedAgents <GenericPermissionType extends string, GenericSubjectTargetEntityType extends string> ({domainId, permissions}: {domainId: string, permissions: GetAuthorisedAgents.PermissionParameters <GenericPermissionType, GenericSubjectTargetEntityType>}): PermissionTargetEntity <GenericTargetEntityType>;
+		public getAuthorisedAgents({domainId, permissions}: {domainId: string, permissions: GetAuthorisedAgents.PermissionParameters <GenericPermissionType, GenericSubjectTargetEntityType>}): Promise <Array <PermissionTargetEntity <GenericTargetEntityType>>>;
 		constructor({table, indexes, queries, globalPermissions, groupPermissions}: {table: string, indexes: Indexes, queries: Queries <GenericUser, GenericTargetEntityType, GenericSubjectTargetEntityType>, globalPermissions?: IsUserAuthorised.PermissionParameters <GenericPermissionType, GenericSubjectTargetEntityType>, groupPermissions?: GroupPermissions <GenericPermissionType>});
 	}
 
