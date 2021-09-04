@@ -9,7 +9,9 @@ declare module '@chris-talman/rethink-permission-system'
 	{
 		user: ({domainId, userId}: {domainId: string | RDatum <string>, userId: string | RDatum <string>}) => RDatum<GenericUser>;
 		globalAuthorised?: ({domainId, userId, user}: {domainId: string | RDatum <string>, userId: string | RDatum <string>, user: RDatum<GenericUser>}) => RDatum <boolean>;
+		getGlobalAuthorisedAgents?: ({domainId}: {domainId: string | RDatum <string>}) => RDatum <PermissionTargetEntity <GenericPermissionTargetEntityType>>;
 		organisationAuthorised?: ({domainId, userId, user}: {domainId: string | RDatum <string>, userId: string | RDatum <string>, user: RDatum<GenericUser>}) => RDatum <boolean>;
+		getOrganisationAuthorisedAgents?: ({domainId}: {domainId: string | RDatum <string>}) => RDatum <PermissionTargetEntity <GenericPermissionTargetEntityType>>;
 		userRoles: ({domainId, userId, user}: {domainId: string | RDatum <string>, userId: string | RDatum <string>, user: RDatum<GenericUser>}) => RDatum <UserRoles <GenericPermissionTargetEntityType>>;
 		/** For `subject` authorisations, evaluates multiple subjects based upon the input subject. */
 		subjectEntities?: ({entity}: {entity: RDatum <PermissionTargetEntity <GenericSubjectTargetEntityType>>}) => RDatum <Array <PermissionTargetEntity <GenericSubjectTargetEntityType>>>;
@@ -20,6 +22,10 @@ declare module '@chris-talman/rethink-permission-system'
 		range: string;
 		/** [ domainId, permission type, negated, user role ID, user role type, subject entity ID, subject entity type, deleted ] */
 		subject: string;
+		/** [ domainId, permission type, deleted ] */
+		simplePermission: string;
+		/** [ domainId, permission type, subject entity ID, subject entity type, deleted ] */
+		subjectPermission: string;
 	}
 	export interface Permissions <PermissionTargetEntityType extends string> extends Array <Permission <PermissionTargetEntityType>> {}
 	export interface Permission <PermissionTargetEntityType extends string>
@@ -69,6 +75,7 @@ declare module '@chris-talman/rethink-permission-system'
 		public readonly groupPermissions?: GroupPermissions <GenericPermissionType>;
 		public isUserAuthorised({domainId, userId, permissions}: {domainId: string | RDatum <string>, userId: string | RDatum <string>, permissions: IsUserAuthorised.PermissionParameters <GenericPermissionType, GenericSubjectTargetEntityType>}): Promise <boolean>;
 		public generateIsUserAuthorisedQuery <GenericPermissions extends IsUserAuthorised.PermissionParameters <GenericPermissionType, GenericSubjectTargetEntityType>> ({domainId, userId, permissions}: {domainId: string | RDatum <string>, userId: string | RDatum <string>, permissions: GenericPermissions}): RDatum <boolean>;
+		public getAuthorisedAgents: typeof import('./src/Modules/AuthorisedAgents').getAuthorisedAgents;
 		constructor({table, indexes, queries, globalPermissions, groupPermissions}: {table: string, indexes: Indexes, queries: Queries <GenericUser, GenericTargetEntityType, GenericSubjectTargetEntityType>, globalPermissions?: IsUserAuthorised.PermissionParameters <GenericPermissionType, GenericSubjectTargetEntityType>, groupPermissions?: GroupPermissions <GenericPermissionType>});
 	}
 

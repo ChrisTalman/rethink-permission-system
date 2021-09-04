@@ -1,6 +1,6 @@
 {
 	"name": "@chris-talman/rethink-permission-system",
-	"version": "6.0.2",
+	"version": "7.0.0",
 	"dependencies": {
 		"@chris-talman/rethink-utilities": "3.2.2",
 		"@chris-talman/types-helpers": "2.5.0",

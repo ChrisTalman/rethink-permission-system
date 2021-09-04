@@ -2,6 +2,7 @@
 
 // Internal Modules
 import { isUserAuthorised, generateIsUserAuthorisedQuery } from './UserAuthorised';
+import { getAuthorisedAgents } from './AuthorisedAgents';
 
 // Types
 import { RDatum } from 'rethinkdb-ts';
@@ -11,7 +12,9 @@ export interface Queries <GenericUser extends any, GenericTargetEntityType exten
 {
 	user: ({domainId, userId}: {domainId: string | RDatum <string>, userId: string | RDatum <string>}) => RDatum<GenericUser>;
 	globalAuthorised?: ({domainId, userId, user}: {domainId: string | RDatum <string>, userId: string | RDatum <string>, user: RDatum<GenericUser>}) => RDatum <boolean>;
-	organisationAuthorised?: ({domainId, userId, user}: {domainId: string | RDatum <string>, userId: string | RDatum <string>, user: RDatum<GenericUser>}) => RDatum <boolean>;
+	getGlobalAuthorisedAgents?: ({domainId}: {domainId: string | RDatum <string>}) => RDatum <PermissionTargetEntity <GenericTargetEntityType>>;
+	organisationAuthorised?: ({domainId, userId, user}: {domainId: string | RDatum <string>, userId: string | RDatum <string>, user: RDatum <GenericUser>}) => RDatum <boolean>;
+	getOrganisationAuthorisedAgents?: ({domainId}: {domainId: string | RDatum <string>}) => RDatum <PermissionTargetEntity <GenericTargetEntityType>>;
 	userRoles: ({domainId, userId, user}: {domainId: string | RDatum <string>, userId: string | RDatum <string>, user: RDatum<GenericUser>}) => RDatum <UserRoles <GenericTargetEntityType>>;
 	/** For `subject` authorisations, evaluates multiple subjects based upon the input subject. */
 	subjectEntities?: ({entity}: {entity: RDatum <PermissionTargetEntity <GenericSubjectTargetEntityType>>}) => RDatum <Array <PermissionTargetEntity <GenericSubjectTargetEntityType>>>;
@@ -22,6 +25,10 @@ interface Indexes
 	range: string;
 	/** [ domainId, permission type, negated, user role ID, user role type, subject entity ID, subject entity type, deleted ] */
 	subject: string;
+	/** [ domainId, permission type, deleted ] */
+	simplePermission: string;
+	/** [ domainId, permission type, subject entity ID, subject entity type, deleted ] */
+	subjectPermission: string;
 };
 export interface Permissions <PermissionTargetEntityType extends string> extends Array<Permission <PermissionTargetEntityType>> {};
 export interface Permission <PermissionTargetEntityType extends string>
@@ -66,6 +73,7 @@ export class PermissionSystem
 	public readonly queries: Queries <GenericUser, GenericTargetEntityType, GenericSubjectTargetEntityType>;
 	public readonly isUserAuthorised = isUserAuthorised;
 	public readonly generateIsUserAuthorisedQuery = generateIsUserAuthorisedQuery;
+	public readonly getAuthorisedAgents = getAuthorisedAgents;
 	public readonly globalPermissions?: PermissionParameters <GenericPermissionType, GenericSubjectTargetEntityType>;
 	public readonly groupPermissions?: GroupPermissions <GenericPermissionType>;
 	constructor({table, indexes, queries, globalPermissions, groupPermissions}: {table: string, indexes: Indexes, queries: Queries <GenericUser, GenericTargetEntityType, GenericSubjectTargetEntityType>, globalPermissions?: PermissionParameters <GenericPermissionType, GenericSubjectTargetEntityType>, groupPermissions?: GroupPermissions <GenericPermissionType>})

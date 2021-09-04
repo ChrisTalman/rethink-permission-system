@@ -5,3 +5,4 @@
 !/index.d.ts
 !/package.json
 !/package-lock.json
+!/src/Modules/AuthorisedAgents.ts
