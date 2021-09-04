@@ -1,12 +1,12 @@
 'use strict';
 
 // Internal Modules
-import { isUserAuthorised, generateIsUserAuthorisedQuery } from './Authorised';
+import { isUserAuthorised, generateIsUserAuthorisedQuery } from './UserAuthorised';
 
 // Types
 import { RDatum } from 'rethinkdb-ts';
 import { OmitLiteral } from '@chris-talman/types-helpers';
-import { PermissionParameters } from './Authorised';
+import { PermissionParameters } from './UserAuthorised';
 export interface Queries <GenericUser extends any, GenericTargetEntityType extends string, GenericSubjectTargetEntityType extends string>
 {
 	user: ({domainId, userId}: {domainId: string | RDatum <string>, userId: string | RDatum <string>}) => RDatum<GenericUser>;
