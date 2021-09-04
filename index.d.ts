@@ -75,7 +75,7 @@ declare module '@chris-talman/rethink-permission-system'
 		public readonly groupPermissions?: GroupPermissions <GenericPermissionType>;
 		public isUserAuthorised({domainId, userId, permissions}: {domainId: string | RDatum <string>, userId: string | RDatum <string>, permissions: IsUserAuthorised.PermissionParameters <GenericPermissionType, GenericSubjectTargetEntityType>}): Promise <boolean>;
 		public generateIsUserAuthorisedQuery <GenericPermissions extends IsUserAuthorised.PermissionParameters <GenericPermissionType, GenericSubjectTargetEntityType>> ({domainId, userId, permissions}: {domainId: string | RDatum <string>, userId: string | RDatum <string>, permissions: GenericPermissions}): RDatum <boolean>;
-		public getAuthorisedAgents: typeof import('./src/Modules/AuthorisedAgents').getAuthorisedAgents;
+		public getAuthorisedAgents <GenericPermissionType extends string, GenericSubjectTargetEntityType extends string> ({domainId, permissions}: {domainId: string, permissions: GetAuthorisedAgents.PermissionParameters <GenericPermissionType, GenericSubjectTargetEntityType>}): PermissionTargetEntity <GenericTargetEntityType>;
 		constructor({table, indexes, queries, globalPermissions, groupPermissions}: {table: string, indexes: Indexes, queries: Queries <GenericUser, GenericTargetEntityType, GenericSubjectTargetEntityType>, globalPermissions?: IsUserAuthorised.PermissionParameters <GenericPermissionType, GenericSubjectTargetEntityType>, groupPermissions?: GroupPermissions <GenericPermissionType>});
 	}
 
@@ -108,6 +108,22 @@ declare module '@chris-talman/rethink-permission-system'
 		{
 			type: GenericPermissionType;
 			entity: PermissionTargetEntity <GenericSubjectTargetEntityType>;
+		}
+	}
+
+	// Get Authorised Agents
+	export namespace GetAuthorisedAgents
+	{
+		export interface PermissionParameters <GenericPermissionType extends string, GenericSubjectTargetEntityType extends string> extends Array <PermissionParameter <GenericPermissionType, GenericSubjectTargetEntityType>> {}
+		export interface PermissionParameter <GenericPermissionType extends string, GenericSubjectTargetEntityType extends string>
+		{
+			type: GenericPermissionType;
+			subject?: PermissionTargetEntity <GenericSubjectTargetEntityType>;
+			/**
+				At least one permission must be authorised, but not necessarily this one.
+				Can be grouped by a `string`, requiring one permission with that `string` to be authorised.
+			*/
+			some?: boolean | string;
 		}
 	}
 }
