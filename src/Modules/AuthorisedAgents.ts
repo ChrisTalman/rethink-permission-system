@@ -104,7 +104,7 @@ function generatePermissionsWithGroups <GenericPermissionType extends string, Ge
 			rawPermission.some = some;
 			const permission = Object.assign({}, rawPermission);
 			permission.some = some;
-			permission.subject = Object.assign({}, permission.subject, {type: groupPermissionType});
+			permission.type = groupPermissionType;
 			permissions.push(permission);
 		};
 	};
