@@ -36,6 +36,7 @@ interface PermissionEvaluation
 // Constants
 import
 {
+	SPECIAL_ID_ALL,
 	NOT_DELETED
 } from 'src/Modules/Constants';
 
@@ -118,51 +119,56 @@ function generateQuery <GenericPermissionType extends string, GenericSubjectTarg
 	const query = RethinkDB
 		.union
 		(
-			RethinkDB.args
+			// @ts-ignore
+			... permissions.map
 			(
-				permissions.map
+				permission =>
 				(
-					permission =>
+					permission.subject
+					?
+						RethinkDB
+							.table<Permission <any>>(system.table)
+							.getAll
+							(
+								[
+									domainId,
+									permission.type,
+									permission.subject.id,
+									permission.subject.type,
+									false
+								],
+								[
+									domainId,
+									permission.type,
+									SPECIAL_ID_ALL,
+									permission.subject.type,
+									false
+								],
+								{ index: system.indexes.subjectPermission }
+							)
+					:
+						RethinkDB
+							.table<Permission <any>>(system.table)
+							.getAll
+							(
+								[
+									domainId,
+									permission.type,
+									NOT_DELETED
+								],
+								{
+									index: system.indexes.simplePermission
+								}
+							)
+				)
+				.map
+				(
+					databasePermission =>
 					(
-						permission.subject
-						?
-							RethinkDB
-								.table<Permission <any>>(system.table)
-								.getAll
-								(
-									[
-										domainId,
-										permission.type,
-										permission.subject.id,
-										permission.subject.type,
-										NOT_DELETED
-									],
-									{ index: system.indexes.subjectPermission }
-								)
-						:
-							RethinkDB
-								.table<Permission <any>>(system.table)
-								.getAll
-								(
-									[
-										domainId,
-										permission.type,
-										NOT_DELETED
-									],
-									{
-										index: system.indexes.simplePermission
-									}
-								)
-					)
-					.map
-					(
-						databasePermission =>
-						(
-							{
-								document: databasePermission,
-								parameter: permission
-							}
-						)
+						{
+							document: databasePermission,
+							parameter: permission
+						}
 					)
 				)
 			)
@@ -202,54 +208,47 @@ function generateQuery <GenericPermissionType extends string, GenericSubjectTarg
 					)
 					.map
 					(
-						permission => permission('agent')
+						permission => permission('document')('agent')
 					)
 			) as any
 		)
-		.concatMap
+		.union
 		(
-			agents =>
-			[
-				RethinkDB.args(system.queries.getGlobalAuthorisedAgents?.({domainId}) ?? [] as any),
-				RethinkDB.args(system.queries.getOrganisationAuthorisedAgents?.({domainId}) ?? [] as any),
-				system.globalPermissions
-				?
-						RethinkDB
-							.table<Permission <any>>(system.table)
-							.getAll
+			system.queries.getGlobalAuthorisedAgents?.({domainId}) ?? [] as any,
+			system.queries.getOrganisationAuthorisedAgents?.({domainId}) ?? [] as any,
+			system.globalPermissions
+			?
+					RethinkDB
+						.table<Permission <any>>(system.table)
+						.getAll
+						(
+							... system.globalPermissions.reduce
 							(
-								RethinkDB.args
-								(
-									system.globalPermissions.reduce
-									(
-										(keys, permission) =>
+								(keys, permission) =>
+								{
+									if ('range' in permission)
+									{
+										for (let type of permission.range.types)
 										{
-											if ('range' in permission)
-											{
-												for (let type of permission.range.types)
-												{
-													keys.push
-													(
-														[
-															domainId,
-															type,
-															NOT_DELETED
-														]
-													);
-												};
-											};
-											return keys;
-										},
-										[] as Array <[string | RDatum <string>, string, boolean]>
-									)
-								),
-								{ index: system.indexes.simplePermission }
-							)
-							.coerceTo('array')
-				:
-					[],
-				RethinkDB.args(agents as any)
-			]
+											keys.push
+											(
+												[
+													domainId,
+													type,
+													NOT_DELETED
+												]
+											);
+										};
+									};
+									return keys;
+								},
+								[] as Array <any>
+							),
+							{ index: system.indexes.simplePermission }
+						)
+						.coerceTo('array')
+			:
+				[]
 		);
 	return query;
 };
