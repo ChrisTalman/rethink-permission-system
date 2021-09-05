@@ -247,6 +247,7 @@ function generateQuery <GenericPermissionType extends string, GenericSubjectTarg
 							{ index: system.indexes.simplePermission }
 						)
 						.coerceTo('array')
+						('agent')
 			:
 				[]
 		);
