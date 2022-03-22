@@ -38,7 +38,7 @@ export function generateUserAuthorisedBySubjectQuery <GenericPermissionType exte
 				.expr
 				(
 					{
-						granted: userRoles
+						permissions: userRoles
 							.concatMap
 							(
 								role => RethinkDB
@@ -53,41 +53,33 @@ export function generateUserAuthorisedBySubjectQuery <GenericPermissionType exte
 													subject =>
 													[
 														[ domainId, permission, NOT_NEGATED, role('id'), role('type'), SPECIAL_ID_ALL, subject('type'), NOT_DELETED ],
-														[ domainId, permission, NOT_NEGATED, role('id'), role('type'), subject('id'), subject('type'), NOT_DELETED ]
+														[ domainId, permission, NOT_NEGATED, role('id'), role('type'), subject('id'), subject('type'), NOT_DELETED ],
+														[ domainId, permission, NEGATED, role('id'), role('type'), SPECIAL_ID_ALL, subject('type'), NOT_DELETED ],
+														[ domainId, permission, NEGATED, role('id'), role('type'), subject('id'), subject('type'), NOT_DELETED ]
 													]
 												) as any
 										),
 										{ index: system.indexes.subject }
 									)
-							)
-							.count()
-							.gt(0),
-						negated: userRoles
-							.concatMap
-							(
-								role => RethinkDB
-								.table<Permission <any>>(system.table)
-								.getAll
-								(
-									RethinkDB.args
-									(
-										subjects
-											.concatMap
-											(
-												subject =>
-												[
-													[ domainId, permission, NEGATED, role('id'), role('type'), SPECIAL_ID_ALL, subject('type'), NOT_DELETED ],
-													[ domainId, permission, NEGATED, role('id'), role('type'), subject('id'), subject('type'), NOT_DELETED ]
-												]
-											) as any
-									),
-									{ index: system.indexes.subject }
-								)
-							)
-							.count()
-							.gt(0),
+							),
 						parameter
 					}
+				)
+				.merge
+				(
+					(data: RDatum) =>
+					(
+						{
+							granted: data('permissions')
+								.filter(permission => permission('negated').default(false).eq(false))
+								.count()
+								.gt(0),
+							negated: data('permissions')
+								.filter(permission => permission('negated').default(false).eq(true))
+								.count()
+								.gt(0)
+						}
+					)
 				)
 		)
 		.merge
