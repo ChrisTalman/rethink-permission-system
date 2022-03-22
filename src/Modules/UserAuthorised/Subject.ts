@@ -31,6 +31,7 @@ export function generateUserAuthorisedBySubjectQuery <GenericPermissionType exte
 )
 {
 	const query: RDatum <PermissionParameterEvaluation> = resolveSubjectEntities({subject, system})
+		.coerceTo('array')
 		.do
 		(
 			(subjects: RDatum) => RethinkDB
