@@ -30,68 +30,64 @@ export function generateUserAuthorisedBySubjectQuery <GenericPermissionType exte
 	}
 )
 {
-	const query: RDatum <PermissionParameterEvaluation> = RethinkDB
-		.expr
+	const query: RDatum <PermissionParameterEvaluation> = resolveSubjectEntities({subject, system})
+		.do
 		(
-			{
-				granted: userRoles
-					.concatMap
-					(
-						role => resolveSubjectEntities({subject, system})
+			(subjects: RDatum) => RethinkDB
+				.expr
+				(
+					{
+						granted: userRoles
 							.concatMap
 							(
-								subject => RethinkDB
-									.union
+								role => RethinkDB
+									.table<Permission <any>>(system.table)
+									.getAll
 									(
-										RethinkDB
-											.table<Permission <any>>(system.table)
-											.getAll
-											(
-												[ domainId, permission, NOT_NEGATED, role('id'), role('type'), SPECIAL_ID_ALL, subject('type'), NOT_DELETED ],
-												{ index: system.indexes.subject }
-											),
-										RethinkDB
-											.table<Permission <any>>(system.table)
-											.getAll
-											(
-												[ domainId, permission, NOT_NEGATED, role('id'), role('type'), subject('id'), subject('type'), NOT_DELETED ],
-												{ index: system.indexes.subject }
-											)
+										RethinkDB.args
+										(
+											subjects
+												.concatMap
+												(
+													subject =>
+													[
+														[ domainId, permission, NOT_NEGATED, role('id'), role('type'), SPECIAL_ID_ALL, subject('type'), NOT_DELETED ],
+														[ domainId, permission, NOT_NEGATED, role('id'), role('type'), subject('id'), subject('type'), NOT_DELETED ]
+													]
+												) as any
+										),
+										{ index: system.indexes.subject }
 									)
 							)
-					)
-					.count()
-					.gt(0),
-				negated: userRoles
-					.concatMap
-					(
-						role => resolveSubjectEntities({subject, system})
+							.count()
+							.gt(0),
+						negated: userRoles
 							.concatMap
 							(
-								subject => RethinkDB
-									.union
+								role => RethinkDB
+								.table<Permission <any>>(system.table)
+								.getAll
+								(
+									RethinkDB.args
 									(
-										RethinkDB
-											.table<Permission <any>>(system.table)
-											.getAll
+										subjects
+											.concatMap
 											(
-												[ domainId, permission, NEGATED, role('id'), role('type'), SPECIAL_ID_ALL, subject('type'), NOT_DELETED ],
-												{ index: system.indexes.subject }
-											),
-										RethinkDB
-											.table<Permission <any>>(system.table)
-											.getAll
-											(
-												[ domainId, permission, NEGATED, role('id'), role('type'), subject('id'), subject('type'), NOT_DELETED ],
-												{ index: system.indexes.subject }
-											)
-									)
+												subject =>
+												[
+													[ domainId, permission, NEGATED, role('id'), role('type'), SPECIAL_ID_ALL, subject('type'), NOT_DELETED ],
+													[ domainId, permission, NEGATED, role('id'), role('type'), subject('id'), subject('type'), NOT_DELETED ]
+												]
+											) as any
+									),
+									{ index: system.indexes.subject }
+								)
 							)
-					)
-					.count()
-					.gt(0),
-				parameter
-			}
+							.count()
+							.gt(0),
+						parameter
+					}
+				)
 		)
 		.merge
 		(
